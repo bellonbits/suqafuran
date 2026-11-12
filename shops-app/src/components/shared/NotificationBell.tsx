@@ -7,6 +7,7 @@ import { useRealtimeStore, RealtimeEvent } from '../../store/useRealtime';
 import { useAuthStore } from '../../store/useAuth';
 import { API_BASE_URL } from '../../services/api';
 import { parseServerDate } from '../../utils/date';
+import { SenderAvatar, VerifiedBadge } from './SenderAvatar';
 
 function formatRelativeTime(isoString?: string | null): string {
     if (!isoString) return '';
@@ -43,6 +44,9 @@ interface ProcessedNotification {
     avatarInitials: string;
     time: string;
     isUnread: boolean;
+    isVerified?: boolean;
+    senderId?: number | null;
+    type: string;
     actionUrl?: string;
     rawEvent: RealtimeEvent;
 }
@@ -55,7 +59,9 @@ function processNotificationEvent(event: RealtimeEvent, idx: number): ProcessedN
     let senderName = payload.sender_name || payload.sender || payload.from_user_name || payload.from_name || 'Suqafuran';
     let actionText = '';
     let tag: string | null = null;
-    let avatar = payload.avatar || payload.sender_avatar || null;
+    let avatar = payload.avatar || payload.sender_avatar || payload.profile_image || payload.sender_profile || null;
+    let isVerified = Boolean(payload.sender_verified || payload.is_verified);
+    let senderId = payload.sender_id ? Number(payload.sender_id) : null;
     let avatarBg = 'bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-300';
     let actionUrl = payload.action_url || payload.actionUrl;
 
@@ -120,6 +126,9 @@ function processNotificationEvent(event: RealtimeEvent, idx: number): ProcessedN
         avatarInitials: initials,
         time,
         isUnread: payload.is_read !== true && payload.status !== 'read',
+        isVerified,
+        senderId,
+        type: eventType,
         actionUrl,
         rawEvent: event,
     };
@@ -180,6 +189,16 @@ export function NotificationBell() {
         }
     };
 
+    const handleAvatarClick = (e: React.MouseEvent, item: ProcessedNotification) => {
+        e.stopPropagation();
+        setIsOpen(false);
+        if (item.senderId) {
+            router.push(`/messages?userId=${item.senderId}`);
+        } else if (item.actionUrl) {
+            router.push(item.actionUrl);
+        }
+    };
+
     // Group notifications into Today, Yesterday, and Earlier
     const now = new Date();
     const todayStr = now.toDateString();
@@ -226,15 +245,18 @@ export function NotificationBell() {
             {/* Modal / Card Over Header */}
             {isOpen && (
                 <>
-                    {/* Backdrop strictly on top of header (z-[9998]) */}
+                    {/* Backdrop strictly on top of header (z-[999998]) */}
                     <div
-                        className="fixed inset-0 z-[9998] transition-opacity bg-slate-900/35 backdrop-blur-xs"
+                        className="fixed inset-0 z-[999998] transition-opacity bg-slate-900/40 backdrop-blur-xs"
                         onClick={() => setIsOpen(false)}
                     />
 
-                    {/* Notification Card Container strictly on top (z-[9999]) */}
+                    {/* Notification Card Container strictly on top (z-[999999]) */}
                     <div
-                        className="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[450px] max-w-[460px] bg-white dark:bg-[#111827] rounded-2xl border border-gray-100 dark:border-neutral-800 z-[9999] max-h-[82vh] sm:max-h-[560px] overflow-hidden flex flex-col shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-200"
+                        className="fixed inset-x-3 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[450px] max-w-[460px] bg-white dark:bg-[#111827] rounded-2xl border border-gray-100 dark:border-neutral-800 z-[999999] max-h-[82vh] sm:max-h-[560px] overflow-hidden flex flex-col shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-200"
+                        style={{
+                            top: typeof window !== 'undefined' && window.innerWidth < 640 ? 'calc(env(safe-area-inset-top, 0px) + 60px)' : undefined,
+                        }}
                     >
                         {/* 1. Header (Notification title + close button) */}
                         <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-[#111827] shrink-0">
@@ -290,7 +312,7 @@ export function NotificationBell() {
                                                 </span>
                                             </div>
                                             <div className="space-y-0.5">
-                                                {todayItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                                {todayItems.map((item) => renderNotificationRow(item, handleNotificationClick, handleAvatarClick))}
                                             </div>
                                         </div>
                                     )}
@@ -307,7 +329,7 @@ export function NotificationBell() {
                                                 </span>
                                             </div>
                                             <div className="space-y-0.5">
-                                                {yesterdayItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                                {yesterdayItems.map((item) => renderNotificationRow(item, handleNotificationClick, handleAvatarClick))}
                                             </div>
                                         </div>
                                     )}
@@ -324,7 +346,7 @@ export function NotificationBell() {
                                                 </span>
                                             </div>
                                             <div className="space-y-0.5">
-                                                {earlierItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                                {earlierItems.map((item) => renderNotificationRow(item, handleNotificationClick, handleAvatarClick))}
                                             </div>
                                         </div>
                                     )}
@@ -338,35 +360,39 @@ export function NotificationBell() {
     );
 }
 
-function renderNotificationRow(item: ProcessedNotification, onClick: (item: ProcessedNotification) => void) {
+function renderNotificationRow(
+    item: ProcessedNotification,
+    onClick: (item: ProcessedNotification) => void,
+    onAvatarClick?: (e: React.MouseEvent, item: ProcessedNotification) => void
+) {
     return (
         <div
             key={item.id}
             onClick={() => onClick(item)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50/80 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer group"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50/90 dark:hover:bg-neutral-800/60 transition-all cursor-pointer group active:scale-[0.99]"
         >
-            {/* Left: Avatar */}
-            {item.avatar ? (
-                <img
-                    src={item.avatar}
-                    alt={item.senderName}
-                    className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-gray-100 dark:ring-neutral-800"
-                />
-            ) : (
-                <div className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center font-bold text-xs ring-1 ring-black/5 dark:ring-white/10 ${item.avatarBg}`}>
-                    {item.avatarInitials}
-                </div>
-            )}
+            {/* Left: Creative Profile Avatar with Corner Badge & Fallback */}
+            <SenderAvatar
+                avatar={item.avatar}
+                name={item.senderName}
+                type={item.type}
+                isVerified={item.isVerified}
+                size="md"
+                onClick={onAvatarClick ? (e) => onAvatarClick(e, item) : undefined}
+            />
 
             {/* Middle: Content */}
             <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-700 dark:text-neutral-300 leading-snug">
-                    <span className="font-bold text-gray-900 dark:text-white mr-1">
+                    <span className="font-bold text-gray-900 dark:text-white mr-1 inline-flex items-center gap-1">
                         {item.senderName}
+                        {item.isVerified && <VerifiedBadge />}
                     </span>
-                    {item.actionText}
+                    <span className="text-gray-600 dark:text-neutral-300">
+                        {item.actionText}
+                    </span>
                     {item.tag && (
-                        <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 text-[10px] font-medium ml-1.5 align-middle">
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 text-[10px] font-medium ml-1.5 align-middle">
                             {item.tag}
                         </span>
                     )}
@@ -378,7 +404,7 @@ function renderNotificationRow(item: ProcessedNotification, onClick: (item: Proc
 
             {/* Right: Unread Cyan Dot indicator */}
             {item.isUnread && (
-                <span className="w-2 h-2 rounded-full bg-sky-400 shrink-0" title="Unread" />
+                <span className="w-2 h-2 rounded-full bg-sky-400 shrink-0 shadow-xs" title="Unread" />
             )}
         </div>
     );

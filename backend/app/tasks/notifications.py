@@ -18,6 +18,7 @@ def send_message_notifications(
     content: str,
     preview: str,
     listing_id: Optional[int] = None,
+    sender_avatar: Optional[str] = None,
 ):
     """
     Send all notifications for a new message (push, email, in-app).
@@ -47,7 +48,8 @@ def send_message_notifications(
                         "sender_id": str(sender_id),
                         "listing_id": str(listing_id or ""),
                         "path": f"/messages/{sender_id}",
-                    }
+                    },
+                    image_url=sender_avatar
                 )
             except Exception as e:
                 logger.warning(f"Failed to send push notification: {e}")

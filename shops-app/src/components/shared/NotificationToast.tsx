@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MessageSquare, ShoppingBag, ShieldCheck, Bell, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useRealtimeStore } from '../../store/useRealtime';
 import { parseServerDate } from '../../utils/date';
+import { SenderAvatar, VerifiedBadge } from './SenderAvatar';
 
 interface ToastItem {
     id: string;
@@ -16,6 +17,7 @@ interface ToastItem {
     actionUrl?: string;
     icon: React.ReactNode;
     avatarBg: string;
+    isVerified?: boolean;
 }
 
 export function NotificationToast() {
@@ -32,18 +34,21 @@ export function NotificationToast() {
 
         // Smart check: If user is actively chatting with this sender in /messages,
         // don't show a blocking toast banner over their conversation.
-        if (typeof window !== 'undefined' && isMessage && payload.sender_id) {
+        if (typeof window !== 'undefined' && isMessage) {
             const isMessagesPath = window.location.pathname.startsWith('/messages');
-            const searchParams = new URLSearchParams(window.location.search);
-            const activeChatUserId = searchParams.get('userId');
-            if (isMessagesPath && activeChatUserId && String(activeChatUserId) === String(payload.sender_id)) {
-                return;
+            if (isMessagesPath) {
+                const searchParams = new URLSearchParams(window.location.search);
+                const activeChatUserId = searchParams.get('userId');
+                if (!payload.sender_id || String(activeChatUserId) === String(payload.sender_id)) {
+                    return;
+                }
             }
         }
 
         const id = `${lastEvent.type}-${Date.now()}`;
         let senderName = payload.sender_name || payload.sender || payload.from_name || payload.from_user_name || 'Suqafuran';
-        let avatar = payload.sender_avatar || payload.avatar || null;
+        let avatar = payload.sender_avatar || payload.avatar || payload.profile_image || payload.sender_profile || null;
+        let isVerified = Boolean(payload.sender_verified || payload.is_verified);
         let tag: string | null = null;
         let message = '';
         let actionUrl = payload.action_url || payload.actionUrl;
@@ -114,6 +119,7 @@ export function NotificationToast() {
             actionUrl,
             icon,
             avatarBg,
+            isVerified,
         };
 
         setToasts((prev) => [newToast, ...prev].slice(0, 3));
@@ -136,39 +142,36 @@ export function NotificationToast() {
 
     return (
         <div
-            className="fixed inset-x-3 top-3 sm:inset-x-auto sm:right-6 sm:top-4 sm:w-[410px] z-[99999] space-y-2.5 pointer-events-none"
+            className="fixed inset-x-3 sm:inset-x-auto sm:right-6 sm:w-[410px] z-[999999] space-y-2.5 pointer-events-none"
             style={{
-                top: 'max(14px, env(safe-area-inset-top, 14px))',
+                top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
             }}
         >
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
                     onClick={() => handleToastClick(toast)}
-                    className="pointer-events-auto w-full bg-white/98 dark:bg-[#111827]/98 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 border border-gray-100 dark:border-neutral-800 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.22)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] flex items-center gap-3 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all animate-in slide-in-from-top-4 duration-300 ease-out group"
+                    className="pointer-events-auto w-full bg-white/95 dark:bg-[#111827]/95 backdrop-blur-2xl rounded-2xl p-3.5 sm:p-4 border border-white/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center gap-3 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all animate-in slide-in-from-top-4 duration-300 ease-out group"
                 >
-                    {/* Left: Avatar */}
-                    {toast.avatar ? (
-                        <img
-                            src={toast.avatar}
-                            alt={toast.senderName}
-                            className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-gray-200 dark:ring-neutral-700"
-                        />
-                    ) : (
-                        <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-bold text-xs ring-1 ring-black/5 dark:ring-white/10 ${toast.avatarBg}`}>
-                            {toast.senderName.slice(0, 2).toUpperCase()}
-                        </div>
-                    )}
+                    {/* Left: Creative Sender Profile Avatar */}
+                    <SenderAvatar
+                        avatar={toast.avatar}
+                        name={toast.senderName}
+                        type={toast.type}
+                        isVerified={toast.isVerified}
+                        size="md"
+                    />
 
                     {/* Center: Info */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
-                            <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex items-center gap-1 min-w-0">
                                 <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                                     {toast.senderName}
                                 </span>
+                                {toast.isVerified && <VerifiedBadge />}
                                 {toast.tag && (
-                                    <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-sky-50 dark:bg-sky-950/60 text-[#0284c7] dark:text-sky-300 text-[10px] font-semibold shrink-0">
+                                    <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-sky-50 dark:bg-sky-950/60 text-[#0284c7] dark:text-sky-300 text-[10px] font-semibold shrink-0 ml-1">
                                         {toast.tag}
                                     </span>
                                 )}

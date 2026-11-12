@@ -74,18 +74,12 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({ src, durationL
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-3 p-2.5 rounded-2xl min-w-[220px] max-w-[280px] sm:max-w-xs ${
-      isMe ? 'text-white' : 'text-gray-900 dark:text-neutral-50'
-    }`}>
+    <div className="flex items-center gap-3 p-2.5 rounded-2xl min-w-[220px] max-w-[280px] sm:max-w-xs text-slate-900 dark:text-neutral-100">
       {/* Play/Pause Button */}
       <button
         type="button"
         onClick={togglePlay}
-        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow transition-transform active:scale-95 ${
-          isMe
-            ? 'bg-white text-[#0284c7] hover:bg-sky-50'
-            : 'bg-[#0284c7] text-white hover:bg-[#0369a1]'
-        }`}
+        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow bg-[#0284c7] hover:bg-[#0369a1] text-white transition-transform active:scale-95"
         aria-label={isPlaying ? 'Pause voice message' : 'Play voice message'}
       >
         {isPlaying ? (
@@ -109,8 +103,8 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({ src, durationL
                 style={{ height: `${h}%` }}
                 className={`w-1 rounded-full transition-all duration-150 ${
                   isFilled
-                    ? isMe ? 'bg-white scale-y-110' : 'bg-[#0284c7] scale-y-110'
-                    : isMe ? 'bg-sky-200/50' : 'bg-gray-300 dark:bg-neutral-700'
+                    ? 'bg-[#0284c7] scale-y-110'
+                    : 'bg-slate-200 dark:bg-neutral-700'
                 }`}
               />
             );
@@ -118,26 +112,20 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({ src, durationL
         </div>
 
         {/* Timers & Speed pill */}
-        <div className={`flex items-center justify-between text-[10px] font-bold ${
-          isMe ? 'text-sky-100' : 'text-gray-500 dark:text-neutral-400'
-        }`}>
+        <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-neutral-400">
           <span>{isPlaying ? formatSecs(currentTime) : displayDuration}</span>
 
           <button
             type="button"
             onClick={cycleSpeed}
-            className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase transition-colors ${
-              isMe 
-                ? 'bg-sky-400/30 hover:bg-sky-400/40 text-white' 
-                : 'bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 text-gray-700 dark:text-neutral-300'
-            }`}
+            className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300"
           >
             {playbackRate}x
           </button>
         </div>
       </div>
 
-      <Mic className={`w-4 h-4 shrink-0 opacity-60 ${isMe ? 'text-white' : 'text-gray-400'}`} />
+      <Mic className="w-4 h-4 shrink-0 opacity-60 text-slate-400" />
     </div>
   );
 };

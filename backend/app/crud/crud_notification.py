@@ -19,6 +19,7 @@ class CRUDNotification:
             import threading
             title = obj_in.get("title") or obj_in.get("data", {}).get("title") or "New Notification"
             body = obj_in.get("message") or obj_in.get("data", {}).get("message") or obj_in.get("data", {}).get("body") or "You have a new update on Suqafuran"
+            image_url = obj_in.get("data", {}).get("sender_avatar") or obj_in.get("data", {}).get("avatar") or obj_in.get("image_url") or None
 
             def _push_worker():
                 try:
@@ -33,7 +34,8 @@ class CRUDNotification:
                                 "type": str(obj_in.get("type", "notification")),
                                 "id": str(db_obj.id or ""),
                                 "path": str(obj_in.get("data", {}).get("action_url") or obj_in.get("data", {}).get("url") or "")
-                            }
+                            },
+                            image_url=image_url
                         )
                 except Exception:
                     pass

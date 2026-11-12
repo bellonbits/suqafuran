@@ -391,10 +391,10 @@ export default function MessagesPage() {
                         className={`flex ${isFromCustomer ? 'justify-start' : 'justify-end'}`}
                       >
                         <div
-                          className={`max-w-[85%] sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs shadow-sm ${
+                          className={`max-w-[85%] sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs select-text backdrop-blur-xl transition-all ${
                             isFromCustomer
-                              ? 'bg-white dark:bg-neutral-900 text-slate-800 dark:text-white rounded-tl-sm border border-slate-100 dark:border-neutral-800'
-                              : 'bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-tr-sm'
+                              ? 'bg-white/90 dark:bg-neutral-900/80 text-slate-800 dark:text-neutral-100 rounded-tl-xs border border-slate-200/80 dark:border-neutral-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
+                              : 'bg-white/95 dark:bg-neutral-900/90 text-slate-900 dark:text-neutral-100 rounded-tr-xs border border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
                           }`}
                         >
                           {/* Rich Product / Attached Image Preview */}
@@ -415,17 +415,14 @@ export default function MessagesPage() {
                             </div>
                           )}
 
-                          {cleanText && (
-                            <p className="leading-relaxed whitespace-pre-wrap break-words">{cleanText}</p>
-                          )}
-
-                          <div className={`flex items-center gap-1 text-[9px] mt-1.5 ${
-                            isFromCustomer ? 'text-slate-400' : 'text-sky-100 justify-end'
-                          }`}>
-                            <span>
-                              {formatMessageTime(msg.created_at || msg.timestamp)}
+                          <div className="relative">
+                            {cleanText && (
+                              <span className="leading-relaxed whitespace-pre-wrap break-words">{cleanText}</span>
+                            )}
+                            <span className="float-right ml-2.5 mt-1 select-none inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium leading-none">
+                              <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
+                              {!isFromCustomer && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
                             </span>
-                            {!isFromCustomer && <CheckCheck className="w-3 h-3" />}
                           </div>
                         </div>
                       </div>

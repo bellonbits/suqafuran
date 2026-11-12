@@ -349,7 +349,7 @@ def broadcast_push_to_all(
     }
 
 
-def send_push_to_user(db, user_id: int, title: str, body: str, data: Optional[dict] = None) -> bool:
+def send_push_to_user(db, user_id: int, title: str, body: str, data: Optional[dict] = None, image_url: Optional[str] = None) -> bool:
     """Convenience: look up user's FCM token from DB and send."""
     try:
         from sqlmodel import select
@@ -358,7 +358,7 @@ def send_push_to_user(db, user_id: int, title: str, body: str, data: Optional[di
         user = db.exec(select(User).where(User.id == user_id)).first()
         if not user or not user.fcm_token:
             return False
-        return send_push(user.fcm_token, title, body, data, db=db)
+        return send_push(user.fcm_token, title, body, data, image_url=image_url, db=db)
     except Exception as e:
         logger.error(f"send_push_to_user error: {e}")
         return False

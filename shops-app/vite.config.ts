@@ -19,7 +19,7 @@ const buildTimeFormatted = now.toLocaleString('en-US', {
 // Auto-generate public/version.json with the exact build/modified time
 try {
   const versionData = {
-    version: '1.0.0',
+    version: '2.1.0',
     buildTime: buildTimeIso,
     buildTimeFormatted: `${buildTimeFormatted} EAT`,
     lastModified: `${buildTimeFormatted} EAT`,

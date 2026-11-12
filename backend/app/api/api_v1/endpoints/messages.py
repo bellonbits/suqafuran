@@ -109,6 +109,8 @@ def send_message(
     else:
         preview = clean_preview.replace("[PRODUCT_IMAGE]:", "").replace("[IMAGE]:", "").strip()[:80]
     now_iso = (msg.created_at.isoformat() + "Z") if msg.created_at and not msg.created_at.tzinfo else (msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat() + "Z")
+    sender_avatar = current_user.avatar_url or current_user.logo_url or None
+    sender_verified = bool(current_user.is_verified or getattr(current_user, "verified_level", None) != "guest")
 
     # 1. Guaranteed in-app notification created in DB (never lost if Celery worker is down)
     try:
@@ -121,6 +123,9 @@ def send_message(
                     "message_id": msg.id,
                     "sender_id": current_user.id,
                     "sender_name": sender_name,
+                    "sender_avatar": sender_avatar,
+                    "avatar": sender_avatar,
+                    "sender_verified": sender_verified,
                     "content": msg.content,
                     "listing_id": msg.listing_id,
                     "title": f"New Message from {sender_name}",
@@ -144,6 +149,9 @@ def send_message(
                 "message": preview,
                 "sender_id": current_user.id,
                 "sender_name": sender_name,
+                "sender_avatar": sender_avatar,
+                "avatar": sender_avatar,
+                "sender_verified": sender_verified,
                 "listing_id": msg.listing_id,
                 "content": msg.content,
                 "created_at": now_iso,
@@ -201,7 +209,8 @@ def send_message(
                             "sender_id": str(current_user.id),
                             "listing_id": str(msg.listing_id or ""),
                             "path": f"/messages?userId={current_user.id}"
-                        }
+                        },
+                        image_url=sender_avatar
                     )
             except Exception as pe:
                 logger.warning(f"Direct push failed: {pe}")
@@ -219,7 +228,8 @@ def send_message(
             receiver_id=message_in.receiver_id,
             content=msg.content,
             preview=preview,
-            listing_id=msg.listing_id
+            listing_id=msg.listing_id,
+            sender_avatar=sender_avatar
         )
     except Exception:
         pass
@@ -321,3 +331,101 @@ def mark_read(
     update_user_heartbeat(current_user.id)
     crud_message.mark_as_read(db, user_id=current_user.id, other_user_id=other_user_id)
     return {"ok": True}
+
+
+@router.post("/{message_id}/reactions")
+def toggle_message_reaction(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    message_id: int,
+    payload: dict = Body(...),
+) -> Any:
+    """
+    Toggle an emoji reaction on a message (e.g. ❤️, 👍, 😂, 😮, 😢, 🙏, 🔥).
+    If the user has already reacted with this emoji, removes it.
+    If different, replaces/adds it.
+    """
+    emoji = payload.get("emoji", "").strip()
+    if not emoji:
+        raise HTTPException(status_code=400, detail="emoji is required")
+
+    msg = db.get(Message, message_id)
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    if current_user.id not in (msg.sender_id, msg.receiver_id):
+        raise HTTPException(status_code=403, detail="Not authorized to react to this message")
+
+    key = f"reactions:msg:{message_id}"
+    try:
+        from app.utils.redis import redis_client
+        existing = redis_client.hget(key, str(current_user.id))
+        if existing == emoji:
+            redis_client.hdel(key, str(current_user.id))
+            action = "removed"
+        else:
+            redis_client.hset(key, str(current_user.id), emoji)
+            redis_client.expire(key, 86400 * 30)  # 30-day retention
+            action = "added"
+
+        all_reactions = redis_client.hgetall(key) or {}
+        summary = {}
+        for uid, em in all_reactions.items():
+            summary[em] = summary.get(em, 0) + 1
+
+        # Broadcast via WebSocket to channel
+        try:
+            from services.websocket_service import manager as chat_manager
+            channel = f"chat_{min(msg.sender_id, msg.receiver_id)}_{max(msg.sender_id, msg.receiver_id)}"
+            event = {
+                "event_type": "reaction",
+                "message_id": message_id,
+                "user_id": current_user.id,
+                "emoji": emoji,
+                "action": action,
+                "reactions": summary,
+                "user_reactions": all_reactions,
+            }
+            chat_manager.broadcast_to_channel_from_thread(channel, event)
+        except Exception as be:
+            logger.warning(f"Failed to broadcast reaction: {be}")
+
+        return {
+            "status": "ok",
+            "message_id": message_id,
+            "action": action,
+            "reactions": summary,
+            "user_reactions": all_reactions,
+        }
+    except Exception as e:
+        logger.error(f"Failed to toggle reaction: {e}")
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/{message_id}/reactions")
+def get_message_reactions(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    message_id: int,
+) -> Any:
+    """Get all current emoji reactions for a message."""
+    msg = db.get(Message, message_id)
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    key = f"reactions:msg:{message_id}"
+    try:
+        from app.utils.redis import redis_client
+        all_reactions = redis_client.hgetall(key) or {}
+        summary = {}
+        for uid, em in all_reactions.items():
+            summary[em] = summary.get(em, 0) + 1
+        return {
+            "message_id": message_id,
+            "reactions": summary,
+            "user_reactions": all_reactions,
+        }
+    except Exception:
+        return {"message_id": message_id, "reactions": {}, "user_reactions": {}}

@@ -19,8 +19,10 @@ interface UseChatReturn {
   sendMessage: (content: string, receiverId: number, listingId?: number) => void;
   setTyping: (receiverId: number, isTyping: boolean) => void;
   setRecording: (receiverId: number, isRecording: boolean) => void;
+  sendReaction: (messageId: number, emoji: string, otherUserId: number) => void;
   subscribeToUser: (userId: number) => void;
   onMessage: (callback: (message: ChatMessage) => void) => void;
+  onReaction: (callback: (data: any) => void) => void;
 }
 
 export function useChat(token: string): UseChatReturn {
@@ -30,6 +32,7 @@ export function useChat(token: string): UseChatReturn {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(null);
+  const reactionCallbackRef = useRef<((data: any) => void) | null>(null);
   const presencePollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subscribedUserIdRef = useRef<number | null>(null);
 
@@ -122,6 +125,10 @@ export function useChat(token: string): UseChatReturn {
               id: data.user_id,
               is_online: data.status === 'online',
             } as ChatUser));
+          } else if (data.event_type === 'reaction') {
+            if (reactionCallbackRef.current) {
+              reactionCallbackRef.current(data);
+            }
           }
         } catch {
           // Ignore invalid frames
@@ -272,13 +279,32 @@ export function useChat(token: string): UseChatReturn {
     messageCallbackRef.current = callback;
   }, []);
 
+  const onReaction = useCallback((callback: (data: any) => void) => {
+    reactionCallbackRef.current = callback;
+  }, []);
+
+  const sendReaction = useCallback((messageId: number, emoji: string, otherUserId: number) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          event_type: 'reaction',
+          message_id: messageId,
+          emoji,
+          other_user_id: otherUserId,
+        })
+      );
+    }
+  }, []);
+
   return {
     isConnected,
     userStatus,
     sendMessage,
     setTyping,
     setRecording,
+    sendReaction,
     subscribeToUser,
     onMessage,
+    onReaction,
   };
 }

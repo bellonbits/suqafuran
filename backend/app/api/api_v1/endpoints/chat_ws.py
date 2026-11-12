@@ -153,6 +153,46 @@ async def websocket_chat_endpoint(
                         exclude_users=[str(user_id)],
                     )
 
+            elif event_type == "reaction":
+                # Emoji reaction toggle on message
+                message_id = data.get("message_id")
+                emoji = (data.get("emoji") or "").strip()
+                other_user_id = data.get("other_user_id")
+
+                if message_id and emoji and other_user_id:
+                    key = f"reactions:msg:{message_id}"
+                    try:
+                        from app.utils.redis import redis_client
+                        existing = redis_client.hget(key, str(user_id))
+                        if existing == emoji:
+                            redis_client.hdel(key, str(user_id))
+                            action = "removed"
+                        else:
+                            redis_client.hset(key, str(user_id), emoji)
+                            redis_client.expire(key, 86400 * 30)
+                            action = "added"
+
+                        all_reactions = redis_client.hgetall(key) or {}
+                        summary = {}
+                        for uid, em in all_reactions.items():
+                            summary[em] = summary.get(em, 0) + 1
+
+                        channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                        await manager.broadcast_to_channel(
+                            channel,
+                            {
+                                "event_type": "reaction",
+                                "message_id": message_id,
+                                "user_id": user_id,
+                                "emoji": emoji,
+                                "action": action,
+                                "reactions": summary,
+                                "user_reactions": all_reactions,
+                            }
+                        )
+                    except Exception as re:
+                        logger.warning(f"Error handling WS reaction: {re}")
+
             elif event_type == "message":
                 # New message - persist to DB and broadcast to receiver across channels
                 other_user_id = data.get("other_user_id")
@@ -185,6 +225,8 @@ async def websocket_chat_endpoint(
                     channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
                     now_iso = datetime.utcnow().isoformat()
                     sender_name = current_user.full_name or "Someone"
+                    sender_avatar = current_user.avatar_url or current_user.logo_url or None
+                    sender_verified = bool(current_user.is_verified or getattr(current_user, "verified_level", None) != "guest")
                     clean_content = (content or "").strip()
                     if "[IMAGE]:" in clean_content or "res.cloudinary.com" in clean_content:
                         preview = "📷 Sent a photo"
@@ -206,6 +248,9 @@ async def websocket_chat_endpoint(
                                     "message_id": message_id,
                                     "sender_id": user_id,
                                     "sender_name": sender_name,
+                                    "sender_avatar": sender_avatar,
+                                    "avatar": sender_avatar,
+                                    "sender_verified": sender_verified,
                                     "content": content,
                                     "listing_id": listing_id,
                                     "title": f"New Message from {sender_name}",
@@ -230,6 +275,9 @@ async def websocket_chat_endpoint(
                                 "message": preview,
                                 "sender_id": user_id,
                                 "sender_name": sender_name,
+                                "sender_avatar": sender_avatar,
+                                "avatar": sender_avatar,
+                                "sender_verified": sender_verified,
                                 "listing_id": listing_id,
                                 "content": content,
                                 "created_at": now_iso,

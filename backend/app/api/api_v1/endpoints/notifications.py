@@ -78,8 +78,66 @@ def get_my_notifications(
 ) -> Any:
     """
     Get notifications for the current user. Supports unread_only filtering.
+    Enriches notifications with the sender's current profile picture, name, and verification status.
     """
-    return crud_notification.get_user_notifications(db, user_id=current_user.id, unread_only=unread_only)
+    from sqlmodel import select
+    raw_notifications = crud_notification.get_user_notifications(db, user_id=current_user.id, unread_only=unread_only)
+
+    # Collect sender_ids to batch lookup profile information
+    sender_ids = set()
+    for n in raw_notifications:
+        if isinstance(n.data, dict) and n.data.get("sender_id"):
+            try:
+                sender_ids.add(int(n.data["sender_id"]))
+            except (ValueError, TypeError):
+                pass
+
+    senders_map = {}
+    if sender_ids:
+        users = db.exec(select(User).where(User.id.in_(sender_ids))).all()
+        for u in users:
+            avatar = u.avatar_url or u.logo_url or None
+            senders_map[u.id] = {
+                "name": u.full_name or u.business_name or "User",
+                "avatar": avatar,
+                "is_verified": bool(u.is_verified or getattr(u, "verified_level", None) != "guest"),
+                "business_name": u.business_name,
+            }
+
+    enriched = []
+    for n in raw_notifications:
+        data_copy = dict(n.data) if isinstance(n.data, dict) else {}
+        sid = data_copy.get("sender_id")
+        if sid:
+            try:
+                sid_int = int(sid)
+                if sid_int in senders_map:
+                    s_info = senders_map[sid_int]
+                    if s_info.get("avatar") and not data_copy.get("sender_avatar"):
+                        data_copy["sender_avatar"] = s_info["avatar"]
+                        data_copy["avatar"] = s_info["avatar"]
+                    elif s_info.get("avatar"):
+                        # Keep profile up to date
+                        data_copy["sender_avatar"] = s_info["avatar"]
+                        data_copy["avatar"] = s_info["avatar"]
+                    if not data_copy.get("sender_name") and s_info.get("name"):
+                        data_copy["sender_name"] = s_info["name"]
+                    data_copy["sender_verified"] = s_info["is_verified"]
+            except (ValueError, TypeError):
+                pass
+
+        created_at_iso = (n.created_at.isoformat() + "Z") if n.created_at and not n.created_at.tzinfo else (n.created_at.isoformat() if n.created_at else None)
+
+        enriched.append({
+            "id": n.id,
+            "user_id": n.user_id,
+            "type": n.type,
+            "data": data_copy,
+            "is_read": n.is_read,
+            "created_at": created_at_iso,
+        })
+
+    return enriched
 
 @router.post("/clear-all")
 @router.delete("/clear-all")

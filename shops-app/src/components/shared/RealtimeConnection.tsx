@@ -88,9 +88,15 @@ export function RealtimeConnection() {
                     const formattedEvents = data.map((item: any) => {
                         const eventId = String(item.id || item._id || `${item.type}-${item.created_at}`);
                         processedEventIds.current.add(eventId);
+                        const rawData = typeof item.data === 'object' && item.data ? item.data : {};
                         return {
                             type: item.type || 'notification',
-                            payload: item.data || { message: item.message || item.title },
+                            payload: {
+                                ...rawData,
+                                id: item.id,
+                                is_read: item.is_read,
+                                created_at: item.created_at,
+                            },
                             timestamp: item.created_at || new Date().toISOString(),
                         };
                     });

@@ -160,12 +160,87 @@ function MessagesPageContent() {
     const [deal, setDeal] = useState<Deal | null>(null);
     const [dealActionLoading, setDealActionLoading] = useState(false);
 
+    // Reactions state
+    const [reactionsMap, setReactionsMap] = useState<Record<number, { summary: Record<string, number>; userReactions: Record<string, string> }>>({});
+    const [activeReactionPickerMessageId, setActiveReactionPickerMessageId] = useState<number | null>(null);
+
     // Initialize WebSocket connection and presence tracking
-    const { isConnected, sendMessage: wssSendMessage, setTyping, setRecording, onMessage, subscribeToUser, userStatus } = useChat(token);
+    const { isConnected, sendMessage: wssSendMessage, setTyping, setRecording, sendReaction, onMessage, onReaction, subscribeToUser, userStatus } = useChat(token);
     const activeConv = conversations.find((c) => c.other_user_id === selectedUserId);
     const isOtherUserOnline = (userStatus?.id === selectedUserId && userStatus?.is_online) || (activeConv?.is_online ?? false);
     const isOtherUserTyping = userStatus?.id === selectedUserId && !!userStatus?.is_typing;
     const isOtherUserRecording = userStatus?.id === selectedUserId && !!userStatus?.is_recording;
+
+    // Listen to real-time reaction broadcasts
+    useEffect(() => {
+        onReaction((data: any) => {
+            if (data?.message_id && data?.reactions) {
+                setReactionsMap((prev) => ({
+                    ...prev,
+                    [data.message_id]: {
+                        summary: data.reactions,
+                        userReactions: data.user_reactions || {},
+                    },
+                }));
+            }
+        });
+    }, [onReaction]);
+
+    const handleToggleReaction = async (messageId: number, emoji: string) => {
+        if (!token || !currentUser?.id) return;
+        setActiveReactionPickerMessageId(null);
+        const uidStr = String(currentUser.id);
+
+        // Optimistic UI update
+        setReactionsMap((prev) => {
+            const current = prev[messageId] || { summary: {}, userReactions: {} };
+            const prevEmoji = current.userReactions[uidStr];
+            const nextSummary = { ...current.summary };
+            const nextUserReactions = { ...current.userReactions };
+
+            if (prevEmoji === emoji) {
+                delete nextUserReactions[uidStr];
+                nextSummary[emoji] = Math.max(0, (nextSummary[emoji] || 1) - 1);
+                if (nextSummary[emoji] === 0) delete nextSummary[emoji];
+            } else {
+                if (prevEmoji) {
+                    nextSummary[prevEmoji] = Math.max(0, (nextSummary[prevEmoji] || 1) - 1);
+                    if (nextSummary[prevEmoji] === 0) delete nextSummary[prevEmoji];
+                }
+                nextUserReactions[uidStr] = emoji;
+                nextSummary[emoji] = (nextSummary[emoji] || 0) + 1;
+            }
+
+            return {
+                ...prev,
+                [messageId]: {
+                    summary: nextSummary,
+                    userReactions: nextUserReactions,
+                },
+            };
+        });
+
+        // Broadcast over WebSocket if peer is active
+        if (selectedUserId) {
+            sendReaction(messageId, emoji, selectedUserId);
+        }
+
+        // Persist via REST API
+        try {
+            const res = await api.post(`/messages/${messageId}/reactions`, { emoji });
+            if (res.data?.reactions) {
+                setReactionsMap((prev) => ({
+                    ...prev,
+                    [messageId]: {
+                        summary: res.data.reactions,
+                        userReactions: res.data.user_reactions || {},
+                    },
+                }));
+            }
+        } catch (err) {
+            console.warn('[Reactions] Failed to persist reaction:', err);
+        }
+    };
 
     // Sync presence updates into conversation list
     useEffect(() => {
@@ -370,6 +445,25 @@ function MessagesPageContent() {
                 const response = await api.get(`/messages/${selectedUserId}`);
                 const loaded: ChatMessage[] = response.data || [];
                 setMessages(loaded);
+
+                // Fetch reactions for messages
+                const recentIds = loaded.slice(-30).map((m) => m.id).filter(Boolean);
+                recentIds.forEach(async (mid) => {
+                    try {
+                        const rRes = await api.get(`/messages/${mid}/reactions`);
+                        if (rRes.data?.reactions && Object.keys(rRes.data.reactions).length > 0) {
+                            setReactionsMap((prev) => ({
+                                ...prev,
+                                [mid]: {
+                                    summary: rRes.data.reactions,
+                                    userReactions: rRes.data.user_reactions || {},
+                                },
+                            }));
+                        }
+                    } catch {
+                        // ignore
+                    }
+                });
 
                 // Recover which listing this thread is about from its own
                 // history, unless the URL already pins one for this exact
@@ -1162,10 +1256,15 @@ function MessagesPageContent() {
                                             }
                                         }
 
+                                        const msgReactions = reactionsMap[msg.id];
+                                        const reactionSummary = msgReactions?.summary || {};
+                                        const userReacts = msgReactions?.userReactions || {};
+                                        const reactionKeys = Object.keys(reactionSummary);
+
                                         return (
                                             <div
                                                 key={msg.id}
-                                                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
+                                                className={`group/msg relative flex items-end gap-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}
                                             >
                                                 {!isMe && (
                                                     <button
@@ -1187,14 +1286,52 @@ function MessagesPageContent() {
                                                         )}
                                                     </button>
                                                 )}
-                                                <div className={`max-w-[88%] sm:max-w-[70%] space-y-1`}>
+
+                                                {/* Quick Reaction Button (Shows on hover/focus) */}
+                                                <div className={`opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center self-center shrink-0 ${isMe ? 'order-first' : 'order-last'}`}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveReactionPickerMessageId(activeReactionPickerMessageId === msg.id ? null : msg.id)}
+                                                        className="w-7 h-7 rounded-full bg-white/90 dark:bg-neutral-850/90 hover:bg-slate-100 dark:hover:bg-neutral-700 shadow-sm border border-slate-200/80 dark:border-neutral-700 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 transition-all active:scale-90"
+                                                        title="Add reaction"
+                                                    >
+                                                        <Smile className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+
+                                                {/* Floating Quick Reaction Emoji Bar */}
+                                                {activeReactionPickerMessageId === msg.id && (
+                                                    <div
+                                                        className={`absolute bottom-full mb-1.5 z-40 flex items-center gap-1 px-2 py-1 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl rounded-full border border-slate-200/90 dark:border-neutral-700 shadow-[0_12px_30px_rgba(0,0,0,0.18)] animate-in zoom-in-95 duration-150 ${isMe ? 'right-2' : 'left-8'}`}
+                                                    >
+                                                        {['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥'].map((emoji) => (
+                                                            <button
+                                                                key={emoji}
+                                                                type="button"
+                                                                onClick={() => handleToggleReaction(msg.id, emoji)}
+                                                                className="w-8 h-8 rounded-full flex items-center justify-center text-lg hover:scale-130 active:scale-95 transition-transform hover:bg-slate-100 dark:hover:bg-neutral-800"
+                                                            >
+                                                                {emoji}
+                                                            </button>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setActiveReactionPickerMessageId(null)}
+                                                            className="w-5 h-5 ml-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                <div className={`max-w-[88%] sm:max-w-[72%] space-y-1`}>
                                                     {isOrderInquiry ? (
                                                         <OrderReceiptBubble content={msg.content} isMe={isMe} listingId={msg.listing_id} />
                                                     ) : isImage && imageUrl ? (
-                                                        <div className={`rounded-2xl p-2 shadow-sm border overflow-hidden ${
+                                                        <div className={`rounded-2xl p-2 border overflow-hidden backdrop-blur-xl transition-all ${
                                                             isMe 
-                                                                ? 'bg-[#0284c7] border-sky-600 rounded-br-sm text-white' 
-                                                                : 'bg-white dark:bg-neutral-900 border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
+                                                                ? 'bg-white/95 dark:bg-neutral-900/90 border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 text-slate-900 dark:text-neutral-100 rounded-br-xs shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]' 
+                                                                : 'bg-white/90 dark:bg-neutral-900/80 border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-xs shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
                                                         }`}>
                                                             <div 
                                                                 onClick={() => setLightboxImageUrl(imageUrl)}
@@ -1209,27 +1346,33 @@ function MessagesPageContent() {
                                                                     <Maximize2 className="w-3.5 h-3.5" />
                                                                 </div>
                                                             </div>
-                                                            {imageCaption && (
-                                                                <p className="p-1.5 text-xs font-semibold leading-relaxed whitespace-pre-wrap break-words">
-                                                                    {imageCaption}
-                                                                </p>
-                                                            )}
+                                                            <div className="flex items-center justify-between pt-1.5 px-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium select-none">
+                                                                <span className="truncate pr-2 font-medium text-slate-800 dark:text-neutral-200">{imageCaption || ''}</span>
+                                                                <span className="inline-flex items-center gap-1 shrink-0 ml-auto">
+                                                                    <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
+                                                                    {isMe && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     ) : isVoice && voiceUrl ? (
-                                                        <div className={`rounded-2xl shadow-sm border overflow-hidden ${
+                                                        <div className={`rounded-2xl p-1 border overflow-hidden backdrop-blur-xl transition-all ${
                                                             isMe 
-                                                                ? 'bg-[#0284c7] border-sky-600 rounded-br-sm' 
-                                                                : 'bg-white dark:bg-neutral-900 border-slate-200/80 dark:border-neutral-800 rounded-bl-sm'
+                                                                ? 'bg-white/95 dark:bg-neutral-900/90 border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 rounded-br-xs shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]' 
+                                                                : 'bg-white/90 dark:bg-neutral-900/80 border-slate-200/80 dark:border-neutral-800 rounded-bl-xs shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
                                                         }`}>
                                                             <VoiceNotePlayer src={voiceUrl} durationLabel={voiceDuration} isMe={isMe} />
+                                                            <div className="flex items-center justify-end px-2.5 pb-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium gap-1 select-none">
+                                                                <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
+                                                                {isMe && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
+                                                            </div>
                                                         </div>
                                                     ) : (() => {
                                                         const { imageUrl: fallbackImg, cleanText } = parseMessageContent(msg.content);
                                                         return (
-                                                            <div className={`rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
+                                                            <div className={`rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm font-medium leading-relaxed select-text backdrop-blur-xl transition-all relative ${
                                                                 isMe
-                                                                    ? 'bg-[#0284c7] text-white rounded-br-sm'
-                                                                    : 'bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
+                                                                    ? 'bg-white/95 dark:bg-neutral-900/90 text-slate-900 dark:text-neutral-100 rounded-br-xs border border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
+                                                                    : 'bg-white/90 dark:bg-neutral-900/80 text-slate-800 dark:text-neutral-100 rounded-bl-xs border border-slate-200/80 dark:border-neutral-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
                                                             }`}>
                                                                 {fallbackImg && (
                                                                     <div 
@@ -1247,7 +1390,12 @@ function MessagesPageContent() {
                                                                         </div>
                                                                     </div>
                                                                 )}
-                                                                {cleanText || (fallbackImg ? '' : msg.content)}
+                                                                <span className="whitespace-pre-wrap break-words">{cleanText || (fallbackImg ? '' : msg.content)}</span>
+                                                                {/* Lawrence Maluki Base_Chat Bubble v3: In-bubble bottom-right timestamp & checkmarks */}
+                                                                <span className="float-right ml-2.5 mt-1 select-none inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium leading-none">
+                                                                    <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
+                                                                    {isMe && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
+                                                                </span>
                                                             </div>
                                                         );
                                                     })()}
@@ -1263,12 +1411,30 @@ function MessagesPageContent() {
                                                         </div>
                                                     )}
 
-                                                    <div className={`flex items-center gap-1 px-1 text-[9px] text-gray-400 font-semibold ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                                        <span>
-                                                            {formatMessageTime(msg.created_at || msg.timestamp)}
-                                                        </span>
-                                                        {isMe && <CheckCheck className="w-3 h-3 text-sky-500" />}
-                                                    </div>
+                                                    {/* Reaction Pills Cluster */}
+                                                    {reactionKeys.length > 0 && (
+                                                        <div className={`flex flex-wrap items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                            {reactionKeys.map((emoji) => {
+                                                                const count = reactionSummary[emoji];
+                                                                const hasMyReaction = userReacts[String(currentUser?.id)] === emoji;
+                                                                return (
+                                                                    <button
+                                                                        key={emoji}
+                                                                        type="button"
+                                                                        onClick={() => handleToggleReaction(msg.id, emoji)}
+                                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all active:scale-90 ${
+                                                                            hasMyReaction
+                                                                                ? 'bg-sky-50 dark:bg-sky-950/80 border border-sky-400 text-sky-700 dark:text-sky-300 ring-1 ring-sky-400/40 shadow-xs'
+                                                                                : 'bg-white/90 dark:bg-neutral-900/80 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 shadow-xs hover:border-slate-300'
+                                                                        }`}
+                                                                    >
+                                                                        <span>{emoji}</span>
+                                                                        {count > 1 && <span className="text-[10px] opacity-80">{count}</span>}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
@@ -1285,7 +1451,7 @@ function MessagesPageContent() {
                                                 <Mic className="w-4 h-4 animate-pulse" />
                                             )}
                                         </div>
-                                        <div className="bg-rose-50/95 dark:bg-rose-950/50 rounded-2xl rounded-bl-xs px-3.5 py-2.5 flex items-center gap-2.5 shadow-xs border border-rose-200/80 dark:border-rose-900/60">
+                                        <div className="bg-white/90 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl rounded-bl-xs px-3.5 py-2.5 flex items-center gap-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-rose-200/80 dark:border-rose-900/60">
                                             <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-rose-500 text-white shadow-xs">
                                                 <Mic className="w-3.5 h-3.5 animate-pulse" />
                                                 <span className="absolute -inset-1 rounded-full border border-rose-400 animate-ping opacity-40 pointer-events-none" />
@@ -1315,7 +1481,7 @@ function MessagesPageContent() {
                                                 (selectedConversation?.other_user_name || 'U').slice(0, 1).toUpperCase()
                                             )}
                                         </div>
-                                        <div className="bg-white dark:bg-neutral-850 rounded-2xl rounded-bl-xs px-4 py-2.5 flex items-center gap-2 shadow-xs border border-gray-100 dark:border-neutral-800">
+                                        <div className="bg-white/90 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl rounded-bl-xs px-4 py-2.5 flex items-center gap-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/80 dark:border-neutral-800">
                                             <span className="text-xs text-gray-500 dark:text-neutral-400 font-medium">
                                                 {selectedConversation?.other_user_name?.split(' ')[0] || 'User'} is typing
                                             </span>

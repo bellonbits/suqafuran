@@ -71,20 +71,28 @@ class RiskBasedSecurity:
     @staticmethod
     def check_messaging_limit(user: User):
         """
-        Prevent spam by limiting message frequency.
+        Prevent spam by limiting message frequency to a healthy rate
+        (e.g., 60 msgs/min for normal users, 120 msgs/min for trusted/admin).
+        Prevents locking out genuine users engaging in active conversations.
         """
+        if getattr(user, "is_admin", False):
+            return
+
         key = f"limit:messages:{user.id}"
         try:
             count = redis_client.get(key) or 0
             count = int(count)
-            
-            # New/Low Trust users are heavily limited
-            if user.trust_score < 100 and count >= 10:
-                 raise HTTPException(status_code=429, detail="Message limit reached. Please wait before sending more messages.")
-            
+
+            max_limit = 120 if getattr(user, "trust_score", 0) >= 100 else 60
+            if count >= max_limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail="You are sending messages too fast. Please wait a few seconds before sending more."
+                )
+
             redis_client.incr(key)
             if count == 0:
-                redis_client.expire(key, 3600) # 1 hour limit
+                redis_client.expire(key, 60)  # 60-second sliding window instead of 1 hour lockout
         except redis.RedisError:
             pass
 
