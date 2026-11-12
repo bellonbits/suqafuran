@@ -289,3 +289,4 @@ def downgrade():
     DROP FUNCTION IF EXISTS current_app_user_id();
     DROP FUNCTION IF EXISTS is_app_admin();
     """)
+

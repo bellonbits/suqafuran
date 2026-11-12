@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agenticresourcediscovery.org/schemas/v1/ard.json",
+  "version": "1.0",
+  "name": "Suqafuran",
+  "description": "Africa's trusted online marketplace. Buy, sell, chat, and transact securely directly with local buyers and verified sellers.",
+  "url": "https://suqafuran.com",
+  "resources": [
+    {
+      "name": "Marketplace Listings Search",
+      "type": "api",
+      "url": "https://suqafuran.com/api/v1/listings/",
+      "description": "Search and retrieve products, verified vendor listings, prices, and locations."
+    },
+    {
+      "name": "Verified Shops Directory",
+      "type": "api",
+      "url": "https://suqafuran.com/api/v1/shops/",
+      "description": "Access registered storefront details, vendor inventories, and badges."
+    },
+    {
+      "name": "AI Shopper Conversational Assistant",
+      "type": "agent",
+      "url": "https://suqafuran.com/ai-shopper",
+      "description": "Natural-language AI assistant for product discovery, seller inquiries, and automated price negotiation."
+    }
+  ],
+  "contact": {
+    "name": "Suqafuran Support",
+    "url": "https://suqafuran.com/help-center"
+  }
+}

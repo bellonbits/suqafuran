@@ -1,0 +1,7 @@
+import{k as c}from"./index-27448418.js";/**
+ * @license lucide-react v1.28.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const o=[["circle",{cx:"12",cy:"12",r:"10",key:"1mglay"}],["path",{d:"M12 6v6l4 2",key:"mmk7yg"}]],k=c("clock",o);export{k as C};
+//# sourceMappingURL=clock-77a3becb.js.map

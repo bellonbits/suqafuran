@@ -1,0 +1,2 @@
+import{i as s}from"./index-27448418.js";const r={async uploadImage(o){const a=new FormData;return a.append("file",o),(await s.post("/listings/upload",a)).data},async uploadMultipleImages(o){if(!o||o.length===0)throw new Error("No files provided for upload");const a=new FormData;return o.forEach(e=>{e&&e.size>0&&a.append("files",e,e.name)}),(await s.post("/listings/upload-multiple",a)).data},async uploadVideo(o){const a=new FormData;return a.append("file",o),(await s.post("/listings/upload-video",a)).data}};export{r as i};
+//# sourceMappingURL=imageService-1f06c68c.js.map

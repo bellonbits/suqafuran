@@ -1,0 +1,2 @@
+import{bi as r}from"./CartesianChart-32eb2f66.js";function d(t,s){var a,i;return(a=(i=t.graphicalItems.cartesianItems.find(e=>e.id===s))===null||i===void 0?void 0:i.xAxisId)!==null&&a!==void 0?a:r}function I(t,s){var a,i;return(a=(i=t.graphicalItems.cartesianItems.find(e=>e.id===s))===null||i===void 0?void 0:i.yAxisId)!==null&&a!==void 0?a:r}export{I as a,d as s};
+//# sourceMappingURL=graphicalItemSelectors-4316977d.js.map
