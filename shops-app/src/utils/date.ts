@@ -85,3 +85,4 @@ export function formatChatDateHeader(dateInput: string | number | Date | null | 
 
     return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 }
+
