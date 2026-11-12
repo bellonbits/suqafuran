@@ -54,3 +54,4 @@ Every frontend feature, modification, or pull request across the Suqafuran marke
 - Support iOS safe-area insets (`env(safe-area-inset-top)`, `env(safe-area-inset-bottom)`).
 - Ensure virtual keyboard opening on Android and iOS does not obscure input bars or cause sticky viewport jumps.
 - Verify touch gesture scroll chaining (`overscroll-behavior: contain`).
+

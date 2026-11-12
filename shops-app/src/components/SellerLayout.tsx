@@ -67,9 +67,15 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
     setDarkMode(next);
     if (next) {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.setAttribute('content', 'dark');
       localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.setAttribute('content', 'light');
       localStorage.setItem('theme', 'light');
     }
   };

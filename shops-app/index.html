@@ -8,6 +8,7 @@
          real upside, since nothing on this page needs to block zoom. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
     <title>Suqafuran - Africa's Marketplace</title>
     <meta name="description" content="Buy and sell locally on Suqafuran -- browse thousands of products from local sellers and shops, or list your own." />
 
@@ -50,8 +51,10 @@
           const isDark = savedTheme === 'dark';
           if (isDark) {
             document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
           } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
           }
         } catch (e) {
           console.log('Theme initialization failed:', e);

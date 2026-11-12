@@ -307,6 +307,7 @@ export const TopSelling: React.FC<{ tabs: TopSellingTab[]; categoryNameById: Rec
             listing={listing}
             categoryName={categoryNameById[listing.category_id]}
             delay={i * 0.02}
+            priority={i === 0}
             {...tab.extras?.(listing)}
           />
         ))}

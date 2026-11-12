@@ -255,6 +255,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 <img
                     src={displayImage}
                     alt={listing.title_en}
+                    width={400}
+                    height={400}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading={priority ? 'eager' : 'lazy'}
                     decoding="async"
@@ -268,7 +270,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     type="button"
                     onClick={handleAddToCart}
                     aria-label={justAddedToCart || inCart ? "In cart" : "Add to cart"}
-                    className={`absolute bottom-2 right-2 h-9 w-9 rounded-full shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10 backdrop-blur-sm ${
+                    className={`absolute bottom-2 right-2 h-10 w-10 sm:h-11 sm:w-11 rounded-full shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10 backdrop-blur-sm ${
                         justAddedToCart || inCart
                             ? 'bg-emerald-600 text-white ring-2 ring-white dark:ring-neutral-900'
                             : 'bg-white/95 border border-gray-200/80 text-gray-800 hover:bg-orange-500 hover:text-white dark:bg-neutral-900/95 dark:border-neutral-700/80 dark:text-neutral-100 dark:hover:bg-orange-500'
@@ -283,8 +285,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
                 <button
                     onClick={handleToggleFavorite}
-                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="absolute top-2 right-2 h-9 w-9 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer z-10"
+                    aria-label={isFavorite ? `Remove ${title} from favorites` : `Add ${title} to favorites`}
+                    className="absolute top-2 right-2 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer z-10"
                 >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                 </button>

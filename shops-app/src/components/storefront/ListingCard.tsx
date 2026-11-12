@@ -113,7 +113,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   const rawImage =
     listing.images && listing.images.length > 0 ? listing.images[0] : FALLBACK_IMAGE;
   const displayImage =
-    optimizeCloudinaryUrl(rawImage, { width: 500, quality: 'auto', fetch_format: 'auto' }) || rawImage;
+    optimizeCloudinaryUrl(rawImage, { width: 400, quality: 'auto', fetch_format: 'auto' }) || rawImage;
 
   const title = field(listing.title_en, listing.title_so) || listing.title_en;
 
@@ -319,6 +319,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           <motion.img
             src={displayImage}
             alt={title}
+            width={400}
+            height={400}
             className="h-full w-full object-cover"
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
@@ -355,12 +357,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               variant="tertiary"
               onClick={handleToggleFavorite}
               className={clsx(
-                '!rounded-full !w-9 !h-9 !p-0 !bg-white/90 dark:!bg-neutral-900/90 !backdrop-blur-sm',
+                '!rounded-full !w-11 !h-11 !p-0 !bg-white/90 dark:!bg-neutral-900/90 !backdrop-blur-sm flex items-center justify-center',
                 '!border !border-gray-200/60 dark:!border-neutral-700/60',
                 '!shadow-sm hover:!shadow-md !transition-shadow',
                 isFavorite ? '!text-red-500' : '!text-gray-500 dark:!text-neutral-300'
               )}
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFavorite ? `Remove ${title} from favorites` : `Add ${title} to favorites`}
             >
               {isFavorite ? (
                 <SfIconFavoriteFilled className="text-red-500" size="sm" />
