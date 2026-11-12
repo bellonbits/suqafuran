@@ -48,6 +48,15 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     console.log('🎯 ProductQuickViewModal render', { isOpen, productName: product?.name, mounted });
   }, [isOpen, product?.name, mounted]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!product || !mounted) return null;
 
   const discountPercent = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);

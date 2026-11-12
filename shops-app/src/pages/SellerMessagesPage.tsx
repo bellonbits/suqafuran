@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Send, Loader, Search, Clock, ArrowLeft, MessageSquare, Image as ImageIcon,
-  CheckCheck, User, ChevronDown, X, Maximize2
+  CheckCheck, User, ChevronDown, X, Maximize2, Smile
 } from 'lucide-react';
 import api from '@/services/api';
+import { useAuthStore } from '@/store/useAuth';
 import { formatMessageDate, formatMessageTime } from '@/utils/date';
 
 interface Conversation {
@@ -76,6 +77,49 @@ export default function MessagesPage() {
   const [activeImageLightbox, setActiveImageLightbox] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const { user: currentUser } = useAuthStore();
+  const [reactionsMap, setReactionsMap] = useState<Record<number, { summary: Record<string, number>; userReactions: Record<string, string> }>>({});
+  const [activeReactionPickerMessageId, setActiveReactionPickerMessageId] = useState<number | null>(null);
+
+  const handleToggleReaction = async (messageId: number, emoji: string) => {
+    setActiveReactionPickerMessageId(null);
+    const uidStr = String(currentUser?.id || 'seller');
+
+    setReactionsMap((prev) => {
+      const current = prev[messageId] || { summary: {}, userReactions: {} };
+      const prevEmoji = current.userReactions[uidStr];
+      const nextSummary = { ...current.summary };
+      const nextUserReactions = { ...current.userReactions };
+
+      if (prevEmoji === emoji) {
+        delete nextUserReactions[uidStr];
+        nextSummary[emoji] = Math.max(0, (nextSummary[emoji] || 1) - 1);
+        if (nextSummary[emoji] === 0) delete nextSummary[emoji];
+      } else {
+        if (prevEmoji) {
+          nextSummary[prevEmoji] = Math.max(0, (nextSummary[prevEmoji] || 1) - 1);
+          if (nextSummary[prevEmoji] === 0) delete nextSummary[prevEmoji];
+        }
+        nextUserReactions[uidStr] = emoji;
+        nextSummary[emoji] = (nextSummary[emoji] || 0) + 1;
+      }
+
+      return {
+        ...prev,
+        [messageId]: {
+          summary: nextSummary,
+          userReactions: nextUserReactions,
+        },
+      };
+    });
+
+    try {
+      await api.post(`/messages/${messageId}/reactions`, { emoji });
+    } catch (err) {
+      console.warn('Failed to persist reaction:', err);
+    }
+  };
 
   // Persistent reference to current selected conversation to avoid stale closures in polling
   const selectedConversationRef = useRef<Conversation | null>(null);
@@ -384,46 +428,114 @@ export default function MessagesPage() {
                   messages.map((msg) => {
                     const isFromCustomer = msg.sender_id === selectedConversation.other_user_id;
                     const { imageUrl, cleanText } = parseMessageContent(msg.content);
+                    const msgReactions = reactionsMap[msg.id];
+                    const reactionSummary = msgReactions?.summary || {};
+                    const userReacts = msgReactions?.userReactions || {};
+                    const reactionKeys = Object.keys(reactionSummary);
 
                     return (
                       <div
                         key={msg.id}
-                        className={`flex ${isFromCustomer ? 'justify-start' : 'justify-end'}`}
+                        className={`group/msg relative flex items-end gap-1.5 ${isFromCustomer ? 'justify-start' : 'justify-end'}`}
                       >
-                        <div
-                          className={`max-w-[85%] sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs select-text backdrop-blur-xl transition-all ${
-                            isFromCustomer
-                              ? 'bg-white/90 dark:bg-neutral-900/80 text-slate-800 dark:text-neutral-100 rounded-tl-xs border border-slate-200/80 dark:border-neutral-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
-                              : 'bg-white/95 dark:bg-neutral-900/90 text-slate-900 dark:text-neutral-100 rounded-tr-xs border border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
-                          }`}
-                        >
-                          {/* Rich Product / Attached Image Preview */}
-                          {imageUrl && (
-                            <div
-                              onClick={() => setActiveImageLightbox(imageUrl)}
-                              className="mb-2.5 overflow-hidden rounded-xl border border-white/20 dark:border-neutral-700/60 bg-black/10 cursor-pointer group relative"
+                        {/* Quick Reaction Button (Shows on hover/focus) */}
+                        <div className={`opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center self-center shrink-0 ${!isFromCustomer ? 'order-first' : 'order-last'}`}>
+                          <button
+                            type="button"
+                            onClick={() => setActiveReactionPickerMessageId(activeReactionPickerMessageId === msg.id ? null : msg.id)}
+                            className="w-7 h-7 rounded-full bg-white/90 dark:bg-neutral-850/90 hover:bg-slate-100 dark:hover:bg-neutral-700 shadow-sm border border-slate-200/80 dark:border-neutral-700 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 transition-all active:scale-90"
+                            title="Add reaction"
+                          >
+                            <Smile className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Floating Quick Reaction Emoji Bar */}
+                        {activeReactionPickerMessageId === msg.id && (
+                          <div
+                            className={`absolute bottom-full mb-1.5 z-40 flex items-center gap-1 px-2 py-1 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl rounded-full border border-slate-200/90 dark:border-neutral-700 shadow-[0_12px_30px_rgba(0,0,0,0.18)] animate-in zoom-in-95 duration-150 ${!isFromCustomer ? 'right-2' : 'left-2'}`}
+                          >
+                            {['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥'].map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => handleToggleReaction(msg.id, emoji)}
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-lg hover:scale-130 active:scale-95 transition-transform hover:bg-slate-100 dark:hover:bg-neutral-800"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setActiveReactionPickerMessageId(null)}
+                              className="w-5 h-5 ml-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
                             >
-                              <img
-                                src={imageUrl}
-                                alt="Product Attachment"
-                                className="w-full max-h-64 sm:max-h-72 object-cover rounded-xl group-hover:scale-102 transition-transform duration-200"
-                                loading="lazy"
-                              />
-                              <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Maximize2 className="w-3.5 h-3.5" />
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="max-w-[85%] sm:max-w-[78%] space-y-1">
+                          <div
+                            className={`inline-block min-w-[76px] rounded-2xl px-3.5 py-2.5 text-xs select-text backdrop-blur-xl transition-all relative ${
+                              isFromCustomer
+                                ? 'bg-white/90 dark:bg-neutral-900/80 text-slate-800 dark:text-neutral-100 rounded-bl-xs border border-slate-200/80 dark:border-neutral-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'
+                                : 'bg-white/95 dark:bg-neutral-900/90 text-slate-900 dark:text-neutral-100 rounded-br-xs border border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
+                            }`}
+                          >
+                            {/* Rich Product / Attached Image Preview */}
+                            {imageUrl && (
+                              <div
+                                onClick={() => setActiveImageLightbox(imageUrl)}
+                                className="mb-2.5 overflow-hidden rounded-xl border border-white/20 dark:border-neutral-700/60 bg-black/10 cursor-pointer group relative"
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt="Product Attachment"
+                                  className="w-full max-h-64 sm:max-h-72 object-cover rounded-xl group-hover:scale-102 transition-transform duration-200"
+                                  loading="lazy"
+                                />
+                                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Maximize2 className="w-3.5 h-3.5" />
+                                </div>
                               </div>
+                            )}
+
+                            <div className="relative">
+                              {cleanText && (
+                                <span className="leading-relaxed whitespace-pre-wrap break-words">{cleanText}</span>
+                              )}
+                              <span className="float-right ml-2.5 mt-1 select-none inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium leading-none">
+                                <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
+                                {!isFromCustomer && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Reaction Badges Cluster */}
+                          {reactionKeys.length > 0 && (
+                            <div className={`flex flex-wrap items-center gap-1 mt-1 ${!isFromCustomer ? 'justify-end' : 'justify-start'}`}>
+                              {reactionKeys.map((emoji) => {
+                                const count = reactionSummary[emoji];
+                                const hasMyReaction = userReacts[String(currentUser?.id || 'seller')] === emoji;
+                                return (
+                                  <button
+                                    key={emoji}
+                                    type="button"
+                                    onClick={() => handleToggleReaction(msg.id, emoji)}
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                                      hasMyReaction
+                                        ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 text-sky-700 dark:text-sky-300 ring-1 ring-sky-400/40 shadow-xs'
+                                        : 'bg-white/90 dark:bg-neutral-900/90 border-slate-200/80 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <span>{emoji}</span>
+                                    {count > 1 && <span className="text-[10px] font-bold">{count}</span>}
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
-
-                          <div className="relative">
-                            {cleanText && (
-                              <span className="leading-relaxed whitespace-pre-wrap break-words">{cleanText}</span>
-                            )}
-                            <span className="float-right ml-2.5 mt-1 select-none inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-neutral-400 font-medium leading-none">
-                              <span>{formatMessageTime(msg.created_at || msg.timestamp)}</span>
-                              {!isFromCustomer && <CheckCheck className="w-3.5 h-3.5 text-sky-500 shrink-0 inline-block" />}
-                            </span>
-                          </div>
                         </div>
                       </div>
                     );

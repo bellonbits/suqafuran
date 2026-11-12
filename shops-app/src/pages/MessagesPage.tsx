@@ -1369,7 +1369,7 @@ function MessagesPageContent() {
                                                     ) : (() => {
                                                         const { imageUrl: fallbackImg, cleanText } = parseMessageContent(msg.content);
                                                         return (
-                                                            <div className={`rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm font-medium leading-relaxed select-text backdrop-blur-xl transition-all relative ${
+                                                            <div className={`inline-block min-w-[76px] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-medium leading-relaxed select-text backdrop-blur-xl transition-all relative ${
                                                                 isMe
                                                                     ? 'bg-white/95 dark:bg-neutral-900/90 text-slate-900 dark:text-neutral-100 rounded-br-xs border border-white/80 dark:border-white/10 ring-1 ring-sky-500/25 dark:ring-sky-400/20 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
                                                                     : 'bg-white/90 dark:bg-neutral-900/80 text-slate-800 dark:text-neutral-100 rounded-bl-xs border border-slate-200/80 dark:border-neutral-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]'

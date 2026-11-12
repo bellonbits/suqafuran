@@ -348,3 +348,26 @@ select {
   outline: 2px solid #fb923c;
   outline-offset: 2px;
 }
+
+/* ── Modern Web Guidance 1.0: Top-layer modal dialog & popover behavior ── */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.modal-overscroll-contain {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Modern Web Guidance 1.0: Fixed table layout and fast rendering ── */
+.table-contain-layout {
+  table-layout: fixed;
+  contain: paint layout;
+}

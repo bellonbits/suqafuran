@@ -45,23 +45,28 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
     setMounted(true);
   }, []);
 
-  // Lock body scroll when modal is open
+  // Modal keyboard accessibility (Esc key to dismiss) & scroll containment
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      if (initialQuery) {
-        setPrompt(initialQuery);
-        handleExecute(initialQuery);
-      } else {
-        setTimeout(() => inputRef.current?.focus(), 150);
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
       }
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
     };
-  }, [isOpen, initialQuery]);
+    window.addEventListener('keydown', handleKeyDown);
+
+    if (initialQuery) {
+      setPrompt(initialQuery);
+      handleExecute(initialQuery);
+    } else {
+      setTimeout(() => inputRef.current?.focus(), 150);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, initialQuery, onClose]);
 
   const handleExecute = async (queryToRun: string) => {
     const q = queryToRun.trim();
@@ -118,9 +123,12 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 overscroll-contain"
       onClick={onClose}
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', overscrollBehavior: 'contain' }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ai-shopper-modal-title"
     >
       <div 
         className="relative w-full max-w-2xl bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[88vh] transition-all"
@@ -137,7 +145,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
               />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+              <h3 id="ai-shopper-modal-title" className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                 <span>Suqafuran AI Shopper</span>
                 <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#00BFFF]/10 text-[#00BFFF]">
                   Intelligent

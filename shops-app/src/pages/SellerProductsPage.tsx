@@ -131,11 +131,51 @@ export default function ProductsPage() {
     return true;
   });
 
+  // Modern Web Guidance: Platform Controls Dismiss Dialog (Esc key)
+  useEffect(() => {
+    if (!soldModalProduct) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSoldModalProduct(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [soldModalProduct]);
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
-        <p className="text-sm font-semibold text-slate-400">Loading your products...</p>
+      <div className="space-y-5 pb-16 max-w-5xl mx-auto px-1 md:px-0 animate-pulse">
+        {/* Top Header Skeleton */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="space-y-1">
+            <div className="h-8 w-32 bg-slate-200 dark:bg-neutral-800 rounded-xl" />
+            <div className="h-3 w-56 bg-slate-100 dark:bg-neutral-850 rounded-lg hidden sm:block" />
+          </div>
+          <div className="h-9 w-28 bg-slate-200 dark:bg-neutral-800 rounded-full" />
+        </div>
+
+        {/* Compact 4-Stat Strip Skeleton */}
+        <div className="grid grid-cols-4 gap-2 md:gap-4 bg-slate-50/80 dark:bg-neutral-900/60 p-2.5 md:p-3 rounded-2xl border border-slate-100 dark:border-neutral-800/80">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col items-center justify-center p-2 rounded-xl space-y-1">
+              <div className="h-3 w-12 bg-slate-200 dark:bg-neutral-800 rounded" />
+              <div className="h-6 w-8 bg-slate-200 dark:bg-neutral-800 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Products List Skeleton */}
+        <div className="space-y-3 pt-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white dark:bg-neutral-900/90 rounded-2xl p-3.5 border border-slate-100 dark:border-neutral-800/80 flex items-center gap-3">
+              <div className="w-14 h-14 rounded-xl bg-slate-200 dark:bg-neutral-800 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 bg-slate-200 dark:bg-neutral-800 rounded" />
+                <div className="h-3 w-24 bg-slate-100 dark:bg-neutral-850 rounded" />
+              </div>
+              <div className="h-8 w-20 bg-slate-200 dark:bg-neutral-800 rounded-xl" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -455,10 +495,20 @@ export default function ProductsPage() {
 
       {/* ── Mark As Sold Modal ── */}
       {soldModalProduct && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white dark:bg-neutral-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-neutral-800 shadow-2xl">
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-contain"
+          onClick={() => setSoldModalProduct(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sold-modal-title"
+          style={{ overscrollBehavior: 'contain' }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-neutral-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-neutral-800 shadow-2xl"
+          >
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-neutral-800">
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Mark as Sold</h2>
+              <h2 id="sold-modal-title" className="text-base font-extrabold text-slate-900 dark:text-white">Mark as Sold</h2>
               <button
                 onClick={() => setSoldModalProduct(null)}
                 className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800"

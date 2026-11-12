@@ -31,6 +31,15 @@ export const ReportFraudModal: React.FC<ReportFraudModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Modern Web Guidance: Platform Controls Dismiss Dialog (Esc key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -80,12 +89,22 @@ export const ReportFraudModal: React.FC<ReportFraudModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-3xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+    <div 
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overscroll-contain"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-fraud-modal-title"
+      style={{ overscrollBehavior: 'contain' }}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-3xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150"
+      >
         <div className="flex items-center justify-between border-b border-gray-100 dark:border-neutral-800 pb-3">
           <div className="flex items-center gap-2 text-red-600">
             <ShieldAlert className="w-5 h-5" />
-            <h3 className="text-base font-black text-gray-900 dark:text-white">
+            <h3 id="report-fraud-modal-title" className="text-base font-black text-gray-900 dark:text-white">
               Report Suspicious Activity
             </h3>
           </div>

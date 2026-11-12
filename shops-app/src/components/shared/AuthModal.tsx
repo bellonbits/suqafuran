@@ -54,6 +54,18 @@ export const AuthModal: React.FC = () => {
         return () => clearTimeout(t);
     }, [cooldown]);
 
+    // Dismiss on Escape key (Modern Web Guidance)
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                close();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, close]);
+
     if (!isOpen) return null;
 
     const finishLogin = async (token: string) => {
@@ -122,7 +134,14 @@ export const AuthModal: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={close}>
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overscroll-contain"
+            onClick={close}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-modal-title"
+            style={{ overscrollBehavior: 'contain' }}
+        >
             <div
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-md rounded-3xl bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto animate-scale-in"
@@ -130,7 +149,7 @@ export const AuthModal: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-neutral-50 font-poppins">
+                        <h2 id="auth-modal-title" className="text-xl sm:text-2xl font-black text-gray-900 dark:text-neutral-50 font-poppins">
                             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
                         </h2>
                         <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">

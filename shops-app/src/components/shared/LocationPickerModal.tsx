@@ -369,17 +369,36 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
         }
     };
 
+    // Dismiss on Escape key (Modern Web Guidance)
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}>
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-xs overscroll-contain" 
+            onClick={onClose} 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="location-picker-modal-title"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, overscrollBehavior: 'contain' }}
+        >
             <div
                 className="w-full mx-4 max-w-md max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 flex flex-col animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '28rem' }}
             >
                 <div className="flex justify-between items-center p-5 pb-3">
-                    <h3 className="text-sm font-black text-gray-900 dark:text-neutral-50 font-poppins flex items-center gap-1.5">
+                    <h3 id="location-picker-modal-title" className="text-sm font-black text-gray-900 dark:text-neutral-50 font-poppins flex items-center gap-1.5">
                         <MapPin className="h-4.5 w-4.5 text-primary" />
                         <span>Choose Location</span>
                     </h3>

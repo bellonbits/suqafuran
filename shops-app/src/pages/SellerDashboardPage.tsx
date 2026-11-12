@@ -125,9 +125,53 @@ export default function SellerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
-        <p className="text-sm font-semibold text-slate-400">Loading your store analytics...</p>
+      <div className="space-y-5 pb-16 max-w-5xl mx-auto px-1 md:px-0 animate-pulse">
+        {/* Top Header Skeleton */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="space-y-1">
+            <div className="h-8 w-36 bg-slate-200 dark:bg-neutral-800 rounded-xl" />
+            <div className="h-3 w-52 bg-slate-100 dark:bg-neutral-850 rounded-lg hidden sm:block" />
+          </div>
+          <div className="h-8 w-28 bg-slate-200 dark:bg-neutral-800 rounded-full" />
+        </div>
+
+        {/* 3 Stat Cards Skeleton */}
+        <div className="grid grid-cols-3 gap-2.5 md:gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white dark:bg-neutral-900 rounded-3xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-2">
+              <div className="h-3 w-16 bg-slate-200 dark:bg-neutral-800 rounded" />
+              <div className="h-6 md:h-7 w-24 bg-slate-200 dark:bg-neutral-800 rounded-lg" />
+              <div className="h-4 w-12 bg-slate-100 dark:bg-neutral-850 rounded-full" />
+            </div>
+          ))}
+        </div>
+
+        {/* Chart Skeleton */}
+        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-28 bg-slate-200 dark:bg-neutral-800 rounded" />
+            <div className="h-3 w-20 bg-slate-100 dark:bg-neutral-850 rounded" />
+          </div>
+          <div className="h-48 md:h-56 w-full bg-slate-50 dark:bg-neutral-850/50 rounded-2xl flex items-end p-4 gap-4">
+            {[40, 65, 45, 85, 70, 95, 80].map((h, idx) => (
+              <div key={idx} className="flex-1 bg-slate-200 dark:bg-neutral-800 rounded-t-lg" style={{ height: `${h}%` }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Top Products Skeleton */}
+        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-3">
+          <div className="h-4 w-24 bg-slate-200 dark:bg-neutral-800 rounded" />
+          {[1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-2">
+              <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-neutral-800 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-36 bg-slate-200 dark:bg-neutral-800 rounded" />
+                <div className="h-3 w-20 bg-slate-100 dark:bg-neutral-850 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -228,7 +272,7 @@ export default function SellerDashboard() {
           <span className="text-[11px] text-slate-400 font-medium">Daily Revenue</span>
         </div>
 
-        <div className="h-48 md:h-56 w-full -ml-3">
+        <div className="h-48 md:h-56 w-full -ml-3" style={{ contain: 'paint layout' }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
