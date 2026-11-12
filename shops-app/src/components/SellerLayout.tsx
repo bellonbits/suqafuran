@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Warehouse,
@@ -43,7 +43,19 @@ function getPageLabel(pathname: string): string {
 export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
+
+  // Defense-in-depth: Redirect immediately if not authenticated
+  const token = typeof window !== 'undefined' ? (() => {
+    try {
+      const raw = localStorage.getItem('suqafuran-auth-redesign');
+      return raw ? JSON.parse(raw)?.state?.token : null;
+    } catch { return null; }
+  })() : null;
+
+  if (!user && !isAuthenticated && !token) {
+    return <Navigate to="/login" state={{ from: { pathname } }} replace />;
+  }
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);

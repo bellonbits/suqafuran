@@ -66,6 +66,14 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Enforce PostgreSQL Row Level Security (RLS) transaction-local context
+    try:
+        from sqlalchemy import text
+        db.execute(text("SET LOCAL app.current_user_id = :uid"), {"uid": str(user.id)})
+        db.execute(text("SET LOCAL app.is_admin = :is_adm"), {"is_adm": "true" if getattr(user, 'is_admin', False) else "false"})
+    except Exception:
+        pass
+
     structlog.contextvars.bind_contextvars(
         user_id=user.id,
         user_email=user.email,
@@ -94,6 +102,14 @@ def get_current_user_optional(
     user_id = int(token_data) if str(token_data).isdigit() else token_data
     user = db.get(User, user_id)
     if user:
+        # Enforce PostgreSQL Row Level Security (RLS) transaction-local context
+        try:
+            from sqlalchemy import text
+            db.execute(text("SET LOCAL app.current_user_id = :uid"), {"uid": str(user.id)})
+            db.execute(text("SET LOCAL app.is_admin = :is_adm"), {"is_adm": "true" if getattr(user, 'is_admin', False) else "false"})
+        except Exception:
+            pass
+
         structlog.contextvars.bind_contextvars(
             user_id=user.id,
             user_email=user.email,

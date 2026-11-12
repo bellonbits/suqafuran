@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Phone, Eye, EyeOff, Loader2, RotateCw } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/auth';
@@ -16,7 +16,10 @@ const COUNTRY_CODES = [
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, login: storeLogin } = useAuthStore();
+
+    const from = (location.state as any)?.from?.pathname || '/shops';
 
     const [method, setMethod] = useState<'email' | 'phone'>('email');
     const [step, setStep] = useState<'form' | 'otp'>('form');
@@ -36,9 +39,9 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (user) {
-            navigate('/shops', { replace: true });
+            navigate(from, { replace: true });
         }
-    }, [user, navigate]);
+    }, [user, navigate, from]);
 
     useEffect(() => {
         if (cooldown <= 0) return;
@@ -51,7 +54,7 @@ export default function LoginPage() {
         storeLogin(me, token);
         identifyUser(me);
         trackEvent('Login', { method });
-        navigate('/', { replace: true });
+        navigate(from, { replace: true });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

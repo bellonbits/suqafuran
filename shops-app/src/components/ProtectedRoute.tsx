@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuth';
 import type { User } from '@/types';
 
@@ -48,15 +48,16 @@ function isAuthorized(user: User, requiredRole: 'seller' | 'admin' | 'agent'): b
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const location = useLocation();
   const store = useAuthStore();
   const stored = getStoredAuth();
 
   const user = store.user || stored.user;
   const isAuthenticated = store.isAuthenticated || stored.isAuthenticated;
 
-  // Not logged in -> redirect immediately
+  // Not logged in -> redirect immediately with target location saved for post-login return
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Insufficient permissions -> redirect to home

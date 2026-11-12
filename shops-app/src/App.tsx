@@ -216,45 +216,47 @@ export default function App() {
       <Route element={<AppLayout><ReturnPolicyPage /></AppLayout>} path="/returns" />
       <Route element={<AppLayout><ReturnPolicyPage /></AppLayout>} path="/refund-policy" />
 
-      <Route element={<AppLayout><CategoryPage /></AppLayout>} path="/:category" />
-
       {/* Authentication Pages */}
       <Route element={<AppLayout><LoginPage /></AppLayout>} path="/login" />
       <Route element={<AppLayout><SignupPage /></AppLayout>} path="/signup" />
       <Route element={<AppLayout><ResetPasswordPage /></AppLayout>} path="/reset-password" />
 
-      {/* User Account Pages */}
-      <Route element={<AppLayout><AccountPage /></AppLayout>} path="/account" />
+      {/* User Account Pages - Protected */}
+      <Route element={<ProtectedRoute><AppLayout><AccountPage /></AppLayout></ProtectedRoute>} path="/account" />
       <Route path="/settings" element={<Navigate to="/account" replace />} />
-      <Route element={<AppLayout><NotificationSettingsPage /></AppLayout>} path="/settings/notifications" />
-      <Route element={<AppLayout><SecurityLogsPage /></AppLayout>} path="/security-logs" />
-      <Route element={<AppLayout><MessagesPage /></AppLayout>} path="/messages" />
-      <Route element={<AppLayout><OrdersPage /></AppLayout>} path="/orders" />
-      <Route element={<AppLayout><FavoritesPage /></AppLayout>} path="/favorites" />
-      <Route element={<AppLayout><SavedSearchesPage /></AppLayout>} path="/saved-searches" />
-      <Route element={<AppLayout><PriceAlertsPage /></AppLayout>} path="/price-alerts" />
-      <Route element={<AppLayout><FollowingPage /></AppLayout>} path="/following" />
+      <Route element={<ProtectedRoute><AppLayout><NotificationSettingsPage /></AppLayout></ProtectedRoute>} path="/settings/notifications" />
+      <Route element={<ProtectedRoute><AppLayout><SecurityLogsPage /></AppLayout></ProtectedRoute>} path="/security-logs" />
+      <Route element={<ProtectedRoute><AppLayout><MessagesPage /></AppLayout></ProtectedRoute>} path="/messages" />
+      <Route element={<ProtectedRoute><AppLayout><OrdersPage /></AppLayout></ProtectedRoute>} path="/orders" />
+      <Route element={<ProtectedRoute><AppLayout><FavoritesPage /></AppLayout></ProtectedRoute>} path="/favorites" />
+      <Route element={<ProtectedRoute><AppLayout><SavedSearchesPage /></AppLayout></ProtectedRoute>} path="/saved-searches" />
+      <Route element={<ProtectedRoute><AppLayout><PriceAlertsPage /></AppLayout></ProtectedRoute>} path="/price-alerts" />
+      <Route element={<ProtectedRoute><AppLayout><FollowingPage /></AppLayout></ProtectedRoute>} path="/following" />
 
-      {/* Seller Dashboard Pages */}
-      <Route element={<SellerLayout><SellerDashboardPage /></SellerLayout>} path="/seller-dashboard" />
-      <Route element={<SellerLayout><SellerShopPage /></SellerLayout>} path="/seller-dashboard/shop" />
-      <Route element={<SellerLayout><SellerProductsPage /></SellerLayout>} path="/seller-dashboard/products" />
-      <Route element={<SellerLayout><PostAdPage /></SellerLayout>} path="/seller-dashboard/products/add" />
-      <Route element={<SellerLayout><SellerBulkImportPage /></SellerLayout>} path="/seller-dashboard/products/bulk-import" />
-      <Route element={<SellerLayout><SellerOrdersPage /></SellerLayout>} path="/seller-dashboard/orders" />
-      <Route element={<SellerLayout><SellerMessagesPage /></SellerLayout>} path="/seller-dashboard/messages" />
-      <Route element={<SellerLayout><SellerCustomersPage /></SellerLayout>} path="/seller-dashboard/customers" />
-      <Route element={<SellerLayout><SellerFinancePage /></SellerLayout>} path="/seller-dashboard/finance" />
-      <Route element={<SellerLayout><SellerAnalyticsPage /></SellerLayout>} path="/seller-dashboard/analytics" />
-      <Route element={<SellerLayout><SellerInventoryPage /></SellerLayout>} path="/seller-dashboard/inventory" />
-      <Route element={<SellerLayout><SellerMarketingPage /></SellerLayout>} path="/seller-dashboard/marketing" />
-      <Route element={<SellerLayout><SellerFeaturedAdsPage /></SellerLayout>} path="/seller-dashboard/featured-ads" />
-      <Route element={<SellerLayout><SellerReviewsPage /></SellerLayout>} path="/seller-dashboard/reviews" />
-      <Route element={<SellerLayout><SellerVerificationPage /></SellerLayout>} path="/seller-dashboard/verification" />
-      <Route element={<SellerLayout><SellerSettingsPage /></SellerLayout>} path="/seller-dashboard/settings" />
-      <Route element={<SellerLayout><SellerStaffPage /></SellerLayout>} path="/seller-dashboard/settings/staff" />
-      <Route element={<SellerLayout><SellerSubscriptionPage /></SellerLayout>} path="/seller-dashboard/subscription" />
-      <Route element={<SellerLayout><SellerReportsPage /></SellerLayout>} path="/seller-dashboard/reports" />
+      {/* Post Ad / Sell - Protected */}
+      <Route element={<ProtectedRoute><AppLayout><PostAdPage /></AppLayout></ProtectedRoute>} path="/post-ad" />
+      <Route element={<ProtectedRoute><AppLayout><PostAdPage /></AppLayout></ProtectedRoute>} path="/sell" />
+
+      {/* Seller Dashboard Pages - Protected (Seller Role) */}
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerDashboardPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerShopPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/shop" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerProductsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/products" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><PostAdPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/products/add" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerBulkImportPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/products/bulk-import" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerOrdersPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/orders" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerMessagesPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/messages" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerCustomersPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/customers" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerFinancePage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/finance" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerAnalyticsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/analytics" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerInventoryPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/inventory" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerMarketingPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/marketing" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerFeaturedAdsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/featured-ads" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerReviewsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/reviews" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerVerificationPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/verification" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerSettingsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/settings" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerStaffPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/settings/staff" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerSubscriptionPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/subscription" />
+      <Route element={<ProtectedRoute requiredRole="seller"><SellerLayout><SellerReportsPage /></SellerLayout></ProtectedRoute>} path="/seller-dashboard/reports" />
 
       {/* Admin Panel - Main Pages - Protected */}
       <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
@@ -276,36 +278,36 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="admin"><AdminUnusualAccountsPage /></ProtectedRoute>} path="/admin-unusual-accounts" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsPage /></ProtectedRoute>} path="/admin-analytics" />
 
-      {/* Admin Dashboard Analytics */}
-      <Route element={<AdminAnalyticsMainPage />} path="/admin-dashboard/analytics" />
-      <Route element={<AdminAnalyticsUsersPage />} path="/admin-dashboard/analytics/users" />
-      <Route element={<AdminAnalyticsSellersPage />} path="/admin-dashboard/analytics/sellers" />
-      <Route element={<AdminAnalyticsDevicesPage />} path="/admin-dashboard/analytics/devices" />
-      <Route element={<AdminAnalyticsGeographicPage />} path="/admin-dashboard/analytics/geographic" />
-      <Route element={<AdminAnalyticsAlertsPage />} path="/admin-dashboard/analytics/alerts" />
-      <Route element={<AdminAnalyticsCommunicationPage />} path="/admin-dashboard/analytics/communication" />
+      {/* Admin Dashboard Analytics - Protected */}
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsMainPage /></ProtectedRoute>} path="/admin-dashboard/analytics" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsUsersPage /></ProtectedRoute>} path="/admin-dashboard/analytics/users" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsSellersPage /></ProtectedRoute>} path="/admin-dashboard/analytics/sellers" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsDevicesPage /></ProtectedRoute>} path="/admin-dashboard/analytics/devices" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsGeographicPage /></ProtectedRoute>} path="/admin-dashboard/analytics/geographic" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsAlertsPage /></ProtectedRoute>} path="/admin-dashboard/analytics/alerts" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsCommunicationPage /></ProtectedRoute>} path="/admin-dashboard/analytics/communication" />
 
-      {/* Admin Dashboard Features */}
+      {/* Admin Dashboard Features - Protected */}
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-dashboard/marketing/banners" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-banners" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-homepage-banners" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin/banners" />
-      <Route element={<AdminBulkProductsPage />} path="/admin-dashboard/bulk-products" />
-      <Route element={<AdminCustomerSegmentsPage />} path="/admin-dashboard/customer-segments" />
-      <Route element={<AdminEmailAnalyticsPage />} path="/admin-dashboard/email-analytics" />
-      <Route element={<AdminEmailTemplatesPage />} path="/admin-dashboard/email-templates" />
-      <Route element={<AdminFeaturedAdsPage />} path="/admin-dashboard/featured-ads" />
-      <Route element={<AdminSubscriptionsPage />} path="/admin-dashboard/subscriptions" />
-      <Route element={<AdminSystemMessagesPage />} path="/admin-dashboard/system-messages" />
-      <Route element={<AdminUserLifecyclePage />} path="/admin-dashboard/user-lifecycle" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminBulkProductsPage /></ProtectedRoute>} path="/admin-dashboard/bulk-products" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminCustomerSegmentsPage /></ProtectedRoute>} path="/admin-dashboard/customer-segments" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminEmailAnalyticsPage /></ProtectedRoute>} path="/admin-dashboard/email-analytics" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminEmailTemplatesPage /></ProtectedRoute>} path="/admin-dashboard/email-templates" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminFeaturedAdsPage /></ProtectedRoute>} path="/admin-dashboard/featured-ads" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminSubscriptionsPage /></ProtectedRoute>} path="/admin-dashboard/subscriptions" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminSystemMessagesPage /></ProtectedRoute>} path="/admin-dashboard/system-messages" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminUserLifecyclePage /></ProtectedRoute>} path="/admin-dashboard/user-lifecycle" />
 
-      {/* Admin Dashboard Monitoring */}
-      <Route element={<AdminMonitoringAlertsPage />} path="/admin-dashboard/monitoring/alerts" />
-      <Route element={<AdminMonitoringKafkaPage />} path="/admin-dashboard/monitoring/kafka" />
-      <Route element={<AdminMonitoringLivePage />} path="/admin-dashboard/monitoring/live" />
+      {/* Admin Dashboard Monitoring - Protected */}
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringAlertsPage /></ProtectedRoute>} path="/admin-dashboard/monitoring/alerts" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringKafkaPage /></ProtectedRoute>} path="/admin-dashboard/monitoring/kafka" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringLivePage /></ProtectedRoute>} path="/admin-dashboard/monitoring/live" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsPage /></ProtectedRoute>} path="/admin-dashboard/monitoring/notifications" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsPage /></ProtectedRoute>} path="/admin-monitoring/notifications" />
-      <Route element={<AdminMonitoringTracesPage />} path="/admin-dashboard/monitoring/traces" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringTracesPage /></ProtectedRoute>} path="/admin-dashboard/monitoring/traces" />
 
       {/* Admin Alt Routes - Protected */}
       <Route element={<ProtectedRoute requiredRole="admin"><AdminShopsAltPage /></ProtectedRoute>} path="/admin/shops" />
@@ -322,6 +324,9 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="agent"><AgentInquiriesPage /></ProtectedRoute>} path="/agent-inquiries" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute>} path="/agent-listings" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentShopsPage /></ProtectedRoute>} path="/agent-shops" />
+
+      {/* Dynamic Category Page - placed last so static route paths are never intercepted */}
+      <Route element={<AppLayout><CategoryPage /></AppLayout>} path="/:category" />
     </Routes>
     </Suspense>
     </>
