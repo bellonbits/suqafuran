@@ -131,12 +131,16 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response?.status === 401) {
+            const url = error.config?.url || '';
+            // Never trigger logout recursively from device-token or auth endpoints
+            if (url.includes('/device-token') || url.includes('/auth/')) {
+                return Promise.reject(error);
+            }
+
             try {
                 const wasAuthenticated = useAuthStore.getState().isAuthenticated;
-                useAuthStore.getState().logout();
-                // Surface the sign-in modal in place rather than yanking the user to a
-                // different page and losing whatever they were doing.
                 if (wasAuthenticated) {
+                    useAuthStore.getState().logout();
                     useAuthModal.getState().open('signin');
                 }
             } catch (err) {

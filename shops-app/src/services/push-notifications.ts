@@ -99,7 +99,10 @@ class PushNotificationsService {
 
   async unregisterDeviceToken() {
     try {
-      await api.delete('/users/me/device-token').catch(() => null);
+      const token = useAuthStore.getState().token;
+      if (token) {
+        await api.delete('/users/me/device-token').catch(() => null);
+      }
       this.currentToken = null;
       try {
         localStorage.removeItem('device_push_token');

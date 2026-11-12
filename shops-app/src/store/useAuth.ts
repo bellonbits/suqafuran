@@ -23,13 +23,18 @@ export const useAuthStore = create<AuthState>()(
             isHydrated: false,
             login: (user, token) => set({ user, token, isAuthenticated: true }),
             logout: () => {
+                const current = useAuthStore.getState();
+                if (!current.isAuthenticated && !current.token) {
+                    return; // Already logged out, prevent redundant or recursive cleanup
+                }
                 resetAnalytics();
+                // Clear state immediately so subsequent interceptor checks see not authenticated
+                set({ user: null, token: null, isAuthenticated: false });
                 try {
                     import('../services/push-notifications').then(({ pushNotificationsService }) => {
                         pushNotificationsService.unregisterDeviceToken();
                     }).catch(() => {});
                 } catch {}
-                set({ user: null, token: null, isAuthenticated: false });
             },
             setUser: (user) => set({ user }),
             setHydrated: (state) => set({ isHydrated: state }),
