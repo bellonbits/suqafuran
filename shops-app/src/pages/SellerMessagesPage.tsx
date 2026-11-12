@@ -7,6 +7,7 @@ import {
   CheckCheck, User, ChevronDown, X, Maximize2
 } from 'lucide-react';
 import api from '@/services/api';
+import { formatMessageDate, formatMessageTime } from '@/utils/date';
 
 interface Conversation {
   other_user_id: number;
@@ -313,7 +314,7 @@ export default function MessagesPage() {
                         </p>
                         {conv.last_message_time && (
                           <span className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
-                            {new Date(conv.last_message_time).toLocaleDateString([], { month: 'numeric', day: 'numeric' })}
+                            {formatMessageDate(conv.last_message_time)}
                           </span>
                         )}
                       </div>
@@ -422,7 +423,7 @@ export default function MessagesPage() {
                             isFromCustomer ? 'text-slate-400' : 'text-sky-100 justify-end'
                           }`}>
                             <span>
-                              {new Date(msg.created_at || msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {formatMessageTime(msg.created_at || msg.timestamp)}
                             </span>
                             {!isFromCustomer && <CheckCheck className="w-3 h-3" />}
                           </div>

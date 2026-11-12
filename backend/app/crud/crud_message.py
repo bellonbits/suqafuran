@@ -109,7 +109,7 @@ class CRUDMessage:
         for msg, user_obj in results:
             other_id = user_obj.id
             if other_id not in conversations:
-                iso_time = msg.created_at.isoformat() if msg.created_at else None
+                iso_time = (msg.created_at.isoformat() + "Z") if msg.created_at and not msg.created_at.tzinfo else (msg.created_at.isoformat() if msg.created_at else None)
                 display_name = user_obj.full_name or f"User #{other_id}"
                 conversations[other_id] = {
                     "other_user_id": other_id,

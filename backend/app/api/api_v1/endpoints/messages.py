@@ -108,7 +108,7 @@ def send_message(
         preview = "🎤 Sent a voice message"
     else:
         preview = clean_preview.replace("[PRODUCT_IMAGE]:", "").replace("[IMAGE]:", "").strip()[:80]
-    now_iso = msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat()
+    now_iso = (msg.created_at.isoformat() + "Z") if msg.created_at and not msg.created_at.tzinfo else (msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat() + "Z")
 
     # 1. Guaranteed in-app notification created in DB (never lost if Celery worker is down)
     try:

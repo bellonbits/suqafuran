@@ -7,6 +7,7 @@ import {
   CreditCard, Truck, AlertCircle, Gift, Info
 } from 'lucide-react';
 import { useNotifications, Notification } from '@/store/useNotifications';
+import { formatMessageTime } from '@/utils/date';
 import Link from 'next/link';
 
 const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
@@ -177,10 +178,7 @@ export default function NotificationCenter() {
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                              {new Date(notification.timestamp).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {formatMessageTime(notification.timestamp)}
                             </p>
                           </div>
 

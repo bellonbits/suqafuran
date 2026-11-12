@@ -25,6 +25,7 @@ import { OrderReceiptBubble } from '@/components/chat/OrderReceiptBubble';
 import { VoiceNotePlayer } from '@/components/chat/VoiceNotePlayer';
 import { EmojiPickerPopover } from '@/components/chat/EmojiPickerPopover';
 import { ReportFraudModal } from '@/components/chat/ReportFraudModal';
+import { formatMessageDate, formatMessageTime, parseServerDate } from '@/utils/date';
 import type { ChatMessage, Listing } from '@/types';
 
 // A plain "hello" opener gets ignored; naming the actual product and asking
@@ -35,17 +36,6 @@ function buildOpeningMessage(productTitle: string): string {
     return `Hi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available?`;
 }
 
-function formatMessageDate(dateStr?: string | null): string {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    if (isToday) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-}
 
 interface Conversation {
     other_user_id: number;
@@ -456,7 +446,7 @@ function MessagesPageContent() {
                         (m.id && message.id && m.id === message.id) ||
                         (m.sender_id === message.sender_id &&
                          m.content === message.content &&
-                         Math.abs(new Date(m.timestamp || m.created_at || '').getTime() - new Date(message.timestamp || message.created_at || '').getTime()) < 3000)
+                         Math.abs(parseServerDate(m.timestamp || m.created_at).getTime() - parseServerDate(message.timestamp || message.created_at).getTime()) < 3000)
                     );
                     return exists ? prev : [...prev, message];
                 });
@@ -1240,7 +1230,7 @@ function MessagesPageContent() {
 
                                                     <div className={`flex items-center gap-1 px-1 text-[9px] text-gray-400 font-semibold ${isMe ? 'justify-end' : 'justify-start'}`}>
                                                         <span>
-                                                            {new Date(msg.created_at || msg.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            {formatMessageTime(msg.created_at || msg.timestamp)}
                                                         </span>
                                                         {isMe && <CheckCheck className="w-3 h-3 text-sky-500" />}
                                                     </div>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
+import { formatMessageTime } from '@/utils/date';
 
 interface NavItem {
   label: string;
@@ -120,7 +121,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             id: n.id,
             title: notifTitle,
             message: notifMessage,
-            time: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+            time: n.created_at ? formatMessageTime(n.created_at) : 'Recently',
             type: n.type === 'alert' || n.type === 'issue' ? 'alert' : n.type === 'promotion' ? 'promotion' : 'info',
             href: n.action_url || payload.action_url || payload.href || undefined,
             read: n.is_read === true || n.status === 'read' || n.read === true

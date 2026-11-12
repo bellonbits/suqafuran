@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status, Body
 from fastapi.responses import StreamingResponse
 from jose import jwt
