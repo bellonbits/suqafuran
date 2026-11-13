@@ -5,6 +5,11 @@
   RewriteEngine On
   RewriteBase /
 
+  # 0. Never rewrite Let's Encrypt / cPanel AutoSSL DCV validation paths
+  RewriteCond %{REQUEST_URI} ^/\.well-known/(acme-challenge|pki-validation)/ [NC,OR]
+  RewriteCond %{REQUEST_URI} ^/cpanelwebcall/ [NC]
+  RewriteRule ^ - [L]
+
   # 1. Serve real files or directories as-is
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
