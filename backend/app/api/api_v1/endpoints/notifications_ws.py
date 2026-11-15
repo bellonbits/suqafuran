@@ -3,10 +3,10 @@ WebSocket endpoint for real-time notifications.
 Handles personal notification subscriptions for authenticated users.
 """
 
-from fastapi import APIRouter, Query, Depends, status
+from fastapi import APIRouter, Query, status
 from fastapi.websockets import WebSocket
 from sqlmodel import Session
-from app.db.session import get_db
+from app.db.session import SessionLocal
 from app.models import User
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -20,15 +20,16 @@ router = APIRouter()
 ALGORITHM = "HS256"
 
 
-def verify_token_get_user(token: str, session: Session) -> User | None:
-    """Verify token and return authenticated user."""
+def verify_token_get_user(token: str) -> User | None:
+    """Verify token and return authenticated user using a short-lived DB session."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if not user_id:
             return None
-        user = session.get(User, user_id)
-        return user
+        with SessionLocal() as session:
+            user = session.get(User, int(user_id) if str(user_id).isdigit() else user_id)
+            return user
     except (JWTError, Exception) as e:
         logger.error(f"Token verification failed: {e}")
         return None
@@ -38,7 +39,6 @@ def verify_token_get_user(token: str, session: Session) -> User | None:
 async def websocket_notifications(
     websocket: WebSocket,
     token: str = Query(...),
-    session: Session = Depends(get_db),
 ):
     """
     WebSocket endpoint for real-time notifications.
@@ -58,8 +58,8 @@ async def websocket_notifications(
     }
     """
     try:
-        # Verify token and get user
-        user = verify_token_get_user(token, session)
+        # Verify token and get user (DB session released immediately)
+        user = verify_token_get_user(token)
         if not user:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
             return

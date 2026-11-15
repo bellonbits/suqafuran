@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Optional, Dict, Set
 
 from app.api import deps
+from app.db.session import SessionLocal
 from app.models.user import User
 from app.crud.crud_message import crud_message
 
@@ -29,7 +30,6 @@ typing_status: Dict[tuple, bool] = {}
 async def websocket_chat_endpoint(
     websocket: WebSocket,
     token: str = Query(...),
-    db: Session = Depends(deps.get_db),
 ):
     """
     WebSocket endpoint for real-time chat.
@@ -37,13 +37,17 @@ async def websocket_chat_endpoint(
     """
     connection_id = str(uuid.uuid4())
 
-    # Authenticate user from token
+    # Authenticate user from token with a short-lived DB session
     try:
-        current_user = deps.get_current_user_from_token(token, db)
-        if not current_user:
-            await websocket.close(code=4001, reason="Unauthorized")
-            return
-        user_id = current_user.id
+        with SessionLocal() as auth_db:
+            current_user = deps.get_current_user_from_token(token, auth_db)
+            if not current_user:
+                await websocket.close(code=4001, reason="Unauthorized")
+                return
+            user_id = current_user.id
+            sender_name = current_user.full_name or "Someone"
+            sender_avatar = current_user.avatar_url or current_user.logo_url or None
+            sender_verified = bool(current_user.is_verified or getattr(current_user, "verified_level", None) != "guest")
     except Exception as e:
         logger.error(f"WebSocket auth failed: {e}")
         try:
@@ -200,33 +204,6 @@ async def websocket_chat_endpoint(
                 listing_id = data.get("listing_id")
 
                 if other_user_id and content:
-                    from app.services.moderation_service import moderation_service
-                    is_flagged, reason = moderation_service.analyze_message(db, current_user, content)
-                    if is_flagged:
-                        await websocket.send_json({
-                            "event_type": "moderation_blocked",
-                            "reason": reason,
-                            "message": "Message blocked: Please keep all conversations in-app and avoid sharing phone numbers or advance payment requests.",
-                        })
-                        continue
-
-                    # 1. Persist to PostgreSQL database to guarantee durability
-                    try:
-                        msg_obj = crud_message.create(
-                            db,
-                            obj_in={"receiver_id": other_user_id, "content": content, "listing_id": listing_id},
-                            sender_id=user_id,
-                        )
-                        message_id = msg_obj.id
-                    except Exception as e:
-                        logger.error(f"Failed to persist WS message: {e}")
-                        message_id = None
-
-                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
-                    now_iso = datetime.utcnow().isoformat()
-                    sender_name = current_user.full_name or "Someone"
-                    sender_avatar = current_user.avatar_url or current_user.logo_url or None
-                    sender_verified = bool(current_user.is_verified or getattr(current_user, "verified_level", None) != "guest")
                     clean_content = (content or "").strip()
                     if "[IMAGE]:" in clean_content or "res.cloudinary.com" in clean_content:
                         preview = "📷 Sent a photo"
@@ -237,31 +214,61 @@ async def websocket_chat_endpoint(
                     else:
                         preview = clean_content.replace("[PRODUCT_IMAGE]:", "").replace("[IMAGE]:", "").strip()[:80]
 
-                    # 2. Create in-app notification in DB
-                    try:
-                        from app.crud.crud_notification import crud_notification
-                        crud_notification.create(
-                            db,
-                            obj_in={
-                                "type": "message",
-                                "data": {
-                                    "message_id": message_id,
-                                    "sender_id": user_id,
-                                    "sender_name": sender_name,
-                                    "sender_avatar": sender_avatar,
-                                    "avatar": sender_avatar,
-                                    "sender_verified": sender_verified,
-                                    "content": content,
-                                    "listing_id": listing_id,
-                                    "title": f"New Message from {sender_name}",
-                                    "message": preview,
-                                    "action_url": f"/messages?userId={user_id}",
-                                }
-                            },
-                            user_id=other_user_id
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to create WS in-app notification: {e}")
+                    is_flagged = False
+                    reason = None
+                    message_id = None
+                    with SessionLocal() as db:
+                        sender_user = db.get(User, user_id)
+                        from app.services.moderation_service import moderation_service
+                        is_flagged, reason = moderation_service.analyze_message(db, sender_user, content)
+                        if is_flagged:
+                            await websocket.send_json({
+                                "event_type": "moderation_blocked",
+                                "reason": reason,
+                                "message": "Message blocked: Please keep all conversations in-app and avoid sharing phone numbers or advance payment requests.",
+                            })
+                            continue
+
+                        # 1. Persist to PostgreSQL database to guarantee durability
+                        try:
+                            msg_obj = crud_message.create(
+                                db,
+                                obj_in={"receiver_id": other_user_id, "content": content, "listing_id": listing_id},
+                                sender_id=user_id,
+                            )
+                            message_id = msg_obj.id
+                        except Exception as e:
+                            logger.error(f"Failed to persist WS message: {e}")
+                            message_id = None
+
+                        # 2. Create in-app notification in DB
+                        try:
+                            from app.crud.crud_notification import crud_notification
+                            crud_notification.create(
+                                db,
+                                obj_in={
+                                    "type": "message",
+                                    "data": {
+                                        "message_id": message_id,
+                                        "sender_id": user_id,
+                                        "sender_name": sender_name,
+                                        "sender_avatar": sender_avatar,
+                                        "avatar": sender_avatar,
+                                        "sender_verified": sender_verified,
+                                        "content": content,
+                                        "listing_id": listing_id,
+                                        "title": f"New Message from {sender_name}",
+                                        "message": preview,
+                                        "action_url": f"/messages?userId={user_id}",
+                                    }
+                                },
+                                user_id=other_user_id
+                            )
+                        except Exception as e:
+                            logger.warning(f"Failed to create WS in-app notification: {e}")
+
+                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                    now_iso = datetime.utcnow().isoformat()
 
                     # 3. Broadcast to SSE & Notification WS (powers Bell, Toast, Chime)
                     try:
