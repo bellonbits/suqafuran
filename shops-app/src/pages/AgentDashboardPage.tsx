@@ -20,6 +20,9 @@ import {
   type ConversionStats,
   type AgentListing
 } from '@/services';
+import {
+  KpiCard, AttentionBanner, SlimShareBar
+} from '@/components/dashboard/DashboardKit';
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const agentNavItems = [
@@ -447,6 +450,20 @@ export default function AgentDashboardPage() {
   return (
     <DashboardLayout title="Business Management" navItems={agentNavItems} userRole="agent">
       <div className="space-y-6 pb-12">
+        {/* Operational Attention Banner for Pending Verifications */}
+        {(verifStats?.pending ?? 0) > 0 && (
+          <AttentionBanner
+            severity="amber"
+            count={verifStats?.pending ?? 0}
+            label="Merchant KYC Verification Requests Awaiting Review"
+            actions={[
+              {
+                label: 'Review Documents',
+                onClick: () => setActiveMainTab('verifications'),
+              },
+            ]}
+          />
+        )}
 
         {/* ── Tab Bar ── */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-100 dark:border-neutral-800 no-scrollbar">
@@ -507,21 +524,34 @@ export default function AgentDashboardPage() {
 
             {/* Metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { label: 'TOTAL COST',  value: `Ksh ${(stats.total_cost / 1000).toFixed(1)}k`, dot: null },
-                { label: 'TOTAL ORDER', value: stats.total_orders,     dot: 'bg-amber-400'  },
-                { label: 'COMPLETED',   value: stats.completed_orders,  dot: 'bg-emerald-500'},
-                { label: 'CANCELD',     value: stats.canceled_orders,   dot: 'bg-rose-500'   },
-              ].map((m, i) => (
-                <div key={i} className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{m.label}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{m.value}</h2>
-                    {m.dot && <span className={`w-3 h-3 rounded-full ${m.dot} shadow-sm`} />}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-2 font-medium">Last 365 days</p>
-                </div>
-              ))}
+              <KpiCard
+                label="Total Order Volume"
+                value={`KES ${stats.total_cost.toLocaleString()}`}
+                color="emerald"
+                subtext="Total transaction volume"
+              />
+              <KpiCard
+                label="Total Orders"
+                value={stats.total_orders.toLocaleString()}
+                color="indigo"
+                subtext="All customer bookings"
+              />
+              <KpiCard
+                label="Completed Orders"
+                value={stats.completed_orders.toLocaleString()}
+                color="emerald"
+                goal={{
+                  current: stats.completed_orders,
+                  target: Math.max(stats.total_orders, 1),
+                  label: `${Math.round((stats.completed_orders / (stats.total_orders || 1)) * 100)}% fulfillment rate`,
+                }}
+              />
+              <KpiCard
+                label="Canceled Orders"
+                value={stats.canceled_orders.toLocaleString()}
+                color="amber"
+                subtext="Discontinued or refunded"
+              />
             </div>
 
             {/* Split */}

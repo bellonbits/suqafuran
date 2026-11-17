@@ -29,6 +29,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Push & Messages', icon: Bell, href: '/admin-dashboard/system-messages' },
   { label: 'Reports', icon: FileText, href: '/admin-reports' },
   { label: 'Realtime Analytics', icon: TrendingUp, href: '/admin-dashboard/analytics' },
+  { label: 'Revenue Analytics', icon: DollarSign, href: '/admin-dashboard/revenue' },
   { label: 'Live Events', icon: Activity, href: '/admin-dashboard/monitoring/live' },
   { label: 'Kafka Monitoring', icon: Activity, href: '/admin-dashboard/monitoring/kafka' },
   { label: 'Subscriptions', icon: CreditCard, href: '/admin-dashboard/subscriptions' },

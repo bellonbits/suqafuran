@@ -82,6 +82,7 @@ const AdminEmailAnalyticsPage = lazy(() => import('./pages/AdminEmailAnalyticsPa
 const AdminEmailTemplatesPage = lazy(() => import('./pages/AdminEmailTemplatesPage'))
 const AdminFeaturedAdsPage = lazy(() => import('./pages/AdminFeaturedAdsPage'))
 const AdminSubscriptionsPage = lazy(() => import('./pages/AdminSubscriptionsPage'))
+const AdminRevenueDashboardPage = lazy(() => import('./pages/AdminRevenueDashboardPage'))
 const AdminSystemMessagesPage = lazy(() => import('./pages/AdminSystemMessagesPage'))
 const AdminUserLifecyclePage = lazy(() => import('./pages/AdminUserLifecyclePage'))
 const AdminMonitoringAlertsPage = lazy(() => import('./pages/AdminMonitoringAlertsPage'))
@@ -318,6 +319,8 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="admin"><AdminEmailTemplatesPage /></ProtectedRoute>} path="/admin-dashboard/email-templates" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminFeaturedAdsPage /></ProtectedRoute>} path="/admin-dashboard/featured-ads" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminSubscriptionsPage /></ProtectedRoute>} path="/admin-dashboard/subscriptions" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminRevenueDashboardPage /></ProtectedRoute>} path="/admin-dashboard/revenue" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminRevenueDashboardPage /></ProtectedRoute>} path="/admin-revenue" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminSystemMessagesPage /></ProtectedRoute>} path="/admin-dashboard/system-messages" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminUserLifecyclePage /></ProtectedRoute>} path="/admin-dashboard/user-lifecycle" />
 

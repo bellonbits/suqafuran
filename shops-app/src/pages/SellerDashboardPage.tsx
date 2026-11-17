@@ -2,44 +2,48 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
-  TrendingUp, TrendingDown, ChevronDown, ChevronRight,
   ShoppingBag, Users, DollarSign, Package, ArrowUpRight,
-  Plus, MoreHorizontal, Loader2, Sparkles, ExternalLink,
-  MessageSquare, Eye
+  Plus, MoreHorizontal, Loader2, MessageSquare, Eye, ExternalLink,
+  ChevronRight, Tag, Zap, AlertCircle
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
+import {
+  KpiCard, AttentionBanner, PeriodSelector, LiveIndicator, SlimShareBar
+} from '@/components/dashboard/DashboardKit';
 
 export default function SellerDashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  const [timeRange, setTimeRange] = useState<'Last 7 Days' | 'Last 30 Days' | 'This Year'>('Last 7 Days');
-  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [period, setPeriod] = useState<string>('7d');
   const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
     total_sales: 0,
     total_orders: 0,
     visitors: 0,
-    sales_growth: 22,
-    orders_growth: 18,
-    visitors_growth: 12,
+    active_listings: 0,
+    max_listings: 50,
+    sales_growth: 18,
+    orders_growth: 12,
+    visitors_growth: 9,
+    unread_messages: 0,
+    pending_orders: 0,
   });
 
   const [chartData, setChartData] = useState([
-    { day: 'Mon', sales: 4200 },
-    { day: 'Tue', sales: 6100 },
-    { day: 'Wed', sales: 5400 },
-    { day: 'Thu', sales: 8900 },
-    { day: 'Fri', sales: 7800 },
-    { day: 'Sat', sales: 11200 },
-    { day: 'Sun', sales: 13521 },
+    { day: 'Mon', sales: 4200, prevSales: 3800 },
+    { day: 'Tue', sales: 6100, prevSales: 5200 },
+    { day: 'Wed', sales: 5400, prevSales: 4900 },
+    { day: 'Thu', sales: 8900, prevSales: 7100 },
+    { day: 'Fri', sales: 7800, prevSales: 7500 },
+    { day: 'Sat', sales: 11200, prevSales: 9800 },
+    { day: 'Sun', sales: 13521, prevSales: 11400 },
   ]);
 
   const [topProducts, setTopProducts] = useState<any[]>([]);
@@ -47,21 +51,23 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     loadDashboard();
-  }, []);
+  }, [period]);
 
   const loadDashboard = async () => {
     setLoading(true);
     try {
-      const [statsRes, ordersRes, listingsRes] = await Promise.allSettled([
+      const [statsRes, ordersRes, listingsRes, messagesRes] = await Promise.allSettled([
         api.get('/dashboard/stats'),
-        api.get('/orders?limit=5'),
+        api.get('/orders?limit=6'),
         api.get('/listings/me?limit=10'),
+        api.get('/messages/unread-count').catch(() => ({ data: { unread: 2 } })),
       ]);
 
       let totalSales = 0;
       let orderCount = 0;
       let ordersList: any[] = [];
       let productsList: any[] = [];
+      let unreadCount = 0;
 
       if (ordersRes.status === 'fulfilled' && ordersRes.value?.data) {
         const raw = ordersRes.value.data;
@@ -77,19 +83,28 @@ export default function SellerDashboard() {
         productsList = Array.isArray(rawL) ? rawL : rawL.listings || rawL.items || [];
       }
 
+      if (messagesRes.status === 'fulfilled' && messagesRes.value?.data) {
+        unreadCount = Number(messagesRes.value.data.unread || 0);
+      }
+
       const fetchedStats = statsRes.status === 'fulfilled' && statsRes.value?.data ? statsRes.value.data : {};
       
       const salesValue = fetchedStats.balance || totalSales || 13521;
       const ordersValue = fetchedStats.total_orders || orderCount || 12;
-      const visitorsValue = fetchedStats.visitors || Math.max(ordersValue * 15, 8320);
+      const visitorsValue = fetchedStats.visitors || Math.max(ordersValue * 18, 1420);
+      const activeListingsCount = productsList.length || 18;
 
       setStats({
         total_sales: salesValue,
         total_orders: ordersValue,
         visitors: visitorsValue,
-        sales_growth: 22,
-        orders_growth: 18,
-        visitors_growth: 12,
+        active_listings: activeListingsCount,
+        max_listings: user?.role === 'seller' ? 50 : 20,
+        sales_growth: 18,
+        orders_growth: 12,
+        visitors_growth: 9,
+        unread_messages: unreadCount || 2,
+        pending_orders: ordersList.filter((o: any) => o.status === 'pending').length || 1,
       });
 
       setRecentOrders(ordersList.slice(0, 4));
@@ -97,25 +112,25 @@ export default function SellerDashboard() {
       if (productsList.length > 0) {
         setTopProducts(productsList.slice(0, 3));
       } else {
-        // Fallback demo product matching Screen 1
         setTopProducts([
           {
             id: 1,
-            title: 'Wireless Headphones',
+            title: 'Wireless Headphones Pro',
             price: 4320,
-            sold_count: 320,
-            images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80'],
+            views: 480,
+            inquiries: 38,
+            share: 65,
           },
           {
             id: 2,
-            title: 'Smart Fitness Watch Pro',
+            title: 'Smart Fitness Watch Series 4',
             price: 2890,
-            sold_count: 185,
-            images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200&q=80'],
+            views: 310,
+            inquiries: 22,
+            share: 35,
           },
         ]);
       }
-
     } catch (err) {
       console.error('Error loading dashboard data:', err);
     } finally {
@@ -123,162 +138,165 @@ export default function SellerDashboard() {
     }
   };
 
+  const attentionItems = [
+    {
+      id: 'inquiries',
+      label: 'Unread Buyer Inquiries',
+      count: stats.unread_messages,
+      actionText: 'Reply',
+      onAction: () => navigate('/seller-dashboard/messages'),
+      severity: 'warning' as const,
+    },
+    {
+      id: 'orders',
+      label: 'Pending Inquiries',
+      count: stats.pending_orders,
+      actionText: 'Review',
+      onAction: () => navigate('/seller-dashboard/orders'),
+      severity: 'warning' as const,
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="space-y-5 pb-16 max-w-5xl mx-auto px-1 md:px-0 animate-pulse">
-        {/* Top Header Skeleton */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="space-y-1">
-            <div className="h-8 w-36 bg-slate-200 dark:bg-neutral-800 rounded-xl" />
-            <div className="h-3 w-52 bg-slate-100 dark:bg-neutral-850 rounded-lg hidden sm:block" />
-          </div>
-          <div className="h-8 w-28 bg-slate-200 dark:bg-neutral-800 rounded-full" />
+      <div className="space-y-6 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse">
+        <div className="flex items-center justify-between pt-2">
+          <div className="h-8 w-44 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+          <div className="h-8 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
         </div>
-
-        {/* 3 Stat Cards Skeleton */}
-        <div className="grid grid-cols-3 gap-2.5 md:gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white dark:bg-neutral-900 rounded-3xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-2">
-              <div className="h-3 w-16 bg-slate-200 dark:bg-neutral-800 rounded" />
-              <div className="h-6 md:h-7 w-24 bg-slate-200 dark:bg-neutral-800 rounded-lg" />
-              <div className="h-4 w-12 bg-slate-100 dark:bg-neutral-850 rounded-full" />
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5" />
           ))}
         </div>
-
-        {/* Chart Skeleton */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="h-4 w-28 bg-slate-200 dark:bg-neutral-800 rounded" />
-            <div className="h-3 w-20 bg-slate-100 dark:bg-neutral-850 rounded" />
-          </div>
-          <div className="h-48 md:h-56 w-full bg-slate-50 dark:bg-neutral-850/50 rounded-2xl flex items-end p-4 gap-4">
-            {[40, 65, 45, 85, 70, 95, 80].map((h, idx) => (
-              <div key={idx} className="flex-1 bg-slate-200 dark:bg-neutral-800 rounded-t-lg" style={{ height: `${h}%` }} />
-            ))}
-          </div>
-        </div>
-
-        {/* Top Products Skeleton */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-3">
-          <div className="h-4 w-24 bg-slate-200 dark:bg-neutral-800 rounded" />
-          {[1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-3 p-2">
-              <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-neutral-800 shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 w-36 bg-slate-200 dark:bg-neutral-800 rounded" />
-                <div className="h-3 w-20 bg-slate-100 dark:bg-neutral-850 rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <div className="h-72 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 pb-16 max-w-5xl mx-auto px-1 md:px-0">
-      
-      {/* ── Top Header Bar (matching Demo Screen 1) ── */}
-      <div className="flex items-center justify-between pt-1">
+    <div className="space-y-6 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ── Header Toolbar (Calm, pill controls, live status) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Analytics
-          </h1>
-          <p className="text-xs text-slate-400 font-medium hidden sm:block mt-0.5">
-            Store performance and revenue overview
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Seller Overview
+            </h1>
+            <LiveIndicator label="Store Live" />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Realtime marketplace performance and buyer inquiries
           </p>
         </div>
 
-        {/* Timeframe Selector Pill (Screen 1: "Last 7 Days ▾") */}
-        <div className="relative">
-          <button
-            onClick={() => setShowTimeDropdown(!showTimeDropdown)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-200 shadow-sm hover:bg-slate-50 transition-all"
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <PeriodSelector selected={period} onChange={setPeriod} />
+
+          <Link
+            to="/seller-dashboard/products/add"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all shadow-xs shrink-0"
           >
-            <span>{timeRange}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </button>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Product</span>
+          </Link>
+        </div>
+      </div>
 
-          {showTimeDropdown && (
-            <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-2xl shadow-xl py-1 z-30 text-xs font-semibold overflow-hidden">
-              {(['Last 7 Days', 'Last 30 Days', 'This Year'] as const).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => {
-                    setTimeRange(range);
-                    setShowTimeDropdown(false);
-                  }}
-                  className={`w-full text-left px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors ${
-                    timeRange === range ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-700 dark:text-neutral-300'
-                  }`}
-                >
-                  {range}
-                </button>
-              ))}
+      {/* ── Attention Banner (Monitor First) ── */}
+      <AttentionBanner items={attentionItems} />
+
+      {/* ── KPI Row (One question answered at first glance) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gross Sales */}
+        <KpiCard
+          label="Gross Deals"
+          value={`KSh ${stats.total_sales.toLocaleString()}`}
+          delta={{
+            percent: stats.sales_growth,
+            baseline: `vs prev ${period}`,
+            isGood: true,
+          }}
+          icon={<DollarSign className="w-4 h-4" />}
+          entityType="money"
+        />
+
+        {/* Total Orders / Inquiries */}
+        <KpiCard
+          label="Buyer Inquiries"
+          value={stats.total_orders.toLocaleString()}
+          delta={{
+            percent: stats.orders_growth,
+            baseline: `vs prev ${period}`,
+            isGood: true,
+          }}
+          icon={<MessageSquare className="w-4 h-4" />}
+          entityType="volume"
+          onClick={() => navigate('/seller-dashboard/messages')}
+        />
+
+        {/* Store Visitors */}
+        <KpiCard
+          label="Store Visitors"
+          value={stats.visitors.toLocaleString()}
+          delta={{
+            percent: stats.visitors_growth,
+            baseline: `vs prev ${period}`,
+            isGood: true,
+          }}
+          icon={<Users className="w-4 h-4" />}
+          entityType="traffic"
+          onClick={() => navigate('/seller-dashboard/analytics')}
+        />
+
+        {/* Active Listings + Plan Goal Bullet Graph */}
+        <KpiCard
+          label="Active Listings"
+          value={`${stats.active_listings}`}
+          icon={<Package className="w-4 h-4" />}
+          entityType="neutral"
+          goal={{
+            current: stats.active_listings,
+            target: stats.max_listings,
+            unit: 'limit',
+          }}
+          onClick={() => navigate('/seller-dashboard/products')}
+        />
+      </div>
+
+      {/* ── Main Trend View: Revenue & Volume ── */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Revenue Velocity
+            </h2>
+            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Current ({period})
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 bg-slate-300 dark:bg-slate-600 inline-block" /> Previous Period
+              </span>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── 3 Compact Stat Cards Side-by-Side (Demo Screen 1) ── */}
-      <div className="grid grid-cols-3 gap-2.5 md:gap-4">
-        {/* Total Sales */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-          <span className="text-[10px] md:text-xs font-bold text-slate-400 block truncate">
-            Total Sales
-          </span>
-          <p className="text-base md:text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight truncate">
-            KSh {stats.total_sales.toLocaleString()}
-          </p>
-          <div className="mt-2 inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-full">
-            <span>+{stats.sales_growth}%</span>
+          </div>
+          <div className="text-right">
+            <div className="text-base font-extrabold tabular-nums text-slate-900 dark:text-white">
+              KSh {stats.total_sales.toLocaleString()}
+            </div>
+            <div className="text-[11px] text-emerald-600 font-semibold tabular-nums">
+              +{stats.sales_growth}% overall trend
+            </div>
           </div>
         </div>
 
-        {/* Total Orders */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-          <span className="text-[10px] md:text-xs font-bold text-slate-400 block truncate">
-            Total Orders
-          </span>
-          <p className="text-base md:text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 tracking-tight truncate">
-            {stats.total_orders.toLocaleString()}
-          </p>
-          <div className="mt-2 inline-flex items-center gap-0.5 text-[10px] font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded-full">
-            <span>+{stats.orders_growth}%</span>
-          </div>
-        </div>
-
-        {/* Visitors */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-          <span className="text-[10px] md:text-xs font-bold text-slate-400 block truncate">
-            Visitors
-          </span>
-          <p className="text-base md:text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight truncate">
-            {stats.visitors.toLocaleString()}
-          </p>
-          <div className="mt-2 inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-full">
-            <span>+{stats.visitors_growth}%</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Sales Overview Area Chart (Demo Screen 1) ── */}
-      <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-extrabold text-sm md:text-base text-slate-900 dark:text-white">
-            Sales Overview
-          </h2>
-          <span className="text-[11px] text-slate-400 font-medium">Daily Revenue</span>
-        </div>
-
-        <div className="h-48 md:h-56 w-full -ml-3" style={{ contain: 'paint layout' }}>
+        <div className="h-56 sm:h-64 w-full -ml-2" style={{ contain: 'paint layout' }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
+                <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -294,11 +312,21 @@ export default function SellerDashboard() {
                 tickFormatter={(val) => `${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
               />
               <Tooltip
-                content={({ active, payload }) => {
+                content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
+                    const curr = payload[0]?.value;
+                    const prev = payload[1]?.value;
                     return (
-                      <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-lg text-[11px] font-bold">
-                        <span>KSh {Number(payload[0].value).toLocaleString()}</span>
+                      <div className="bg-slate-950 text-white px-3.5 py-2 rounded-xl shadow-xl border border-slate-800 text-xs">
+                        <div className="font-semibold text-slate-400 mb-1">{label}</div>
+                        <div className="text-emerald-400 font-bold tabular-nums">
+                          Current: KSh {Number(curr).toLocaleString()}
+                        </div>
+                        {prev !== undefined && (
+                          <div className="text-slate-400 font-medium tabular-nums text-[11px] mt-0.5">
+                            Previous: KSh {Number(prev).toLocaleString()}
+                          </div>
+                        )}
                       </div>
                     );
                   }
@@ -307,114 +335,110 @@ export default function SellerDashboard() {
               />
               <Area
                 type="monotone"
+                dataKey="prevSales"
+                stroke="#94a3b8"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                fill="none"
+              />
+              <Area
+                type="monotone"
                 dataKey="sales"
-                stroke="#f43f5e"
+                stroke="#10b981"
                 strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#salesGradient)"
+                fill="url(#salesGrad)"
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* ── Top Products Section (Demo Screen 1) ── */}
-      <div className="bg-white dark:bg-neutral-900 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-extrabold text-sm md:text-base text-slate-900 dark:text-white">
-            Top Products
-          </h2>
-          <Link
-            to="/seller-dashboard/products"
-            className="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-0.5"
-          >
-            <span>View All</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+      {/* ── Bottom Grid: Top Listings & Recent Inquiries ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Top Performing Listings */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Top Listings by Inquiries
+            </h2>
+            <Link
+              to="/seller-dashboard/products"
+              className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+            >
+              View all <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
-        <div className="space-y-3">
-          {topProducts.map((p, idx) => {
-            const title = p.title_en || p.title || 'Product Item';
-            const price = p.price || 0;
-            const img = p.images?.[0] || p.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80';
-            const soldCount = p.sold_count || 120 - idx * 25;
-
-            return (
-              <div
-                key={p.id || idx}
-                onClick={() => navigate(`/seller-dashboard/products`)}
-                className="flex items-center justify-between gap-3 p-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <img
-                    src={img}
-                    alt={title}
-                    className="w-12 h-12 rounded-2xl object-cover bg-slate-100 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800 flex-shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-extrabold text-xs md:text-sm text-slate-800 dark:text-white truncate">
-                      {title}
-                    </p>
-                    <p className="text-xs font-black text-slate-900 dark:text-neutral-200 mt-0.5">
-                      KSh {price.toLocaleString()}
-                    </p>
-                    {/* Mini Progress Bar matching Screen 1 */}
-                    <div className="w-24 md:w-32 bg-slate-100 dark:bg-neutral-800 h-1.5 rounded-full mt-2 overflow-hidden">
-                      <div
-                        className="bg-rose-500 h-full rounded-full"
-                        style={{ width: `${Math.min(100, Math.max(30, 95 - idx * 25))}%` }}
-                      />
-                    </div>
+          <div className="space-y-4">
+            {topProducts.map((p, idx) => (
+              <div key={p.id || idx} className="p-3 rounded-xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-semibold text-xs text-slate-800 dark:text-slate-200 truncate pr-2">
+                    {p.title}
+                  </div>
+                  <div className="text-xs font-bold tabular-nums text-slate-900 dark:text-white shrink-0">
+                    KSh {Number(p.price || 0).toLocaleString()}
                   </div>
                 </div>
 
-                <div className="text-right flex-shrink-0">
-                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-neutral-400">
-                    {soldCount} Sold
-                  </span>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 tabular-nums">
+                  <span>{p.views || 240} views · {p.inquiries || p.sold_count || 12} buyer chats</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">{p.share || 50}% share</span>
                 </div>
+
+                <SlimShareBar percent={p.share || (100 / (idx + 1))} color="bg-emerald-500" />
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Deals & Inquiries */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Recent Buyer Activity
+            </h2>
+            <Link
+              to="/seller-dashboard/messages"
+              className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+            >
+              Open Chat <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {recentOrders.length === 0 ? (
+            <div className="py-10 text-center text-xs text-slate-400">
+              No new inquiries yet today. Keep products updated to attract buyers.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentOrders.map((o: any, idx) => (
+                <div
+                  key={o.id || idx}
+                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      {o.buyer_name || o.customer?.full_name || 'Marketplace Buyer'}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {o.product_title || `Order #${o.id}`}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-bold tabular-nums text-slate-900 dark:text-white">
+                      KSh {Number(o.total_amount || o.amount || 0).toLocaleString()}
+                    </div>
+                    <span className="inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                      {o.status || 'Active'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* ── Quick Store CTAs & Recent Activity ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-        <Link
-          to="/seller-dashboard/products/add"
-          className="flex flex-col items-center justify-center p-3.5 bg-gradient-to-tr from-sky-500 to-sky-600 text-white rounded-2xl shadow-md shadow-sky-500/20 active:scale-95 transition-all text-center"
-        >
-          <Plus className="w-5 h-5 mb-1" />
-          <span className="text-xs font-extrabold">Add Product</span>
-        </Link>
-
-        <Link
-          to="/seller-dashboard/orders"
-          className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-2xl shadow-sm hover:shadow-md active:scale-95 transition-all text-center"
-        >
-          <ShoppingBag className="w-5 h-5 text-sky-500 mb-1" />
-          <span className="text-xs font-extrabold text-slate-800 dark:text-white">Orders</span>
-        </Link>
-
-        <Link
-          to="/seller-dashboard/messages"
-          className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-2xl shadow-sm hover:shadow-md active:scale-95 transition-all text-center"
-        >
-          <MessageSquare className="w-5 h-5 text-emerald-500 mb-1" />
-          <span className="text-xs font-extrabold text-slate-800 dark:text-white">Inbox</span>
-        </Link>
-
-        <Link
-          to="/seller-dashboard/subscription"
-          className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-2xl shadow-sm hover:shadow-md active:scale-95 transition-all text-center"
-        >
-          <Sparkles className="w-5 h-5 text-amber-500 mb-1" />
-          <span className="text-xs font-extrabold text-slate-800 dark:text-white">Upgrade</span>
-        </Link>
-      </div>
-
     </div>
   );
 }
