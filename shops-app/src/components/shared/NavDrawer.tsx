@@ -54,7 +54,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
 
                 <nav className="flex-1">
                     {navLink('/', <Home className="h-4.5 w-4.5 text-gray-400" />, t('Home'))}
-                    {navLink('/ai-shopper', <Sparkles className="h-4.5 w-4.5 text-[#00BFFF]" />, 'AI Shopper')}
+                    {navLink('/ai-shopper', <img src="/ai.png" alt="AI Shopper" className="h-4.5 w-4.5 object-contain" />, 'AI Shopper')}
                     {navLink('/home', <Store className="h-4.5 w-4.5 text-gray-400" />, 'Browse Shops')}
                     {navLink('/deals', <Tag className="h-4.5 w-4.5 text-orange-400" />, t('Deals'))}
                     {isAuthenticated ? (

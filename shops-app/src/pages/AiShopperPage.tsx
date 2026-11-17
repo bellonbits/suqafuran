@@ -274,7 +274,7 @@ export default function AiShopperPage() {
           {/* Center Brand Badge (Hidden on very small screens) */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700">
             <div className="w-5 h-5 rounded-full overflow-hidden shrink-0">
-              <img src="/ai-shopper-icon.png" alt="" className="w-full h-full object-contain" />
+              <img src="/ai.png" alt="Suqafuran AI" className="w-full h-full object-contain" />
             </div>
             <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">
               Suqafuran AI Shopper
@@ -338,7 +338,7 @@ export default function AiShopperPage() {
                 {/* Initial Assistant Greeting */}
                 <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 mt-0.5 shadow-xs p-0.5">
-                    <img src="/ai-shopper-icon.png" alt="" className="w-full h-full object-contain" />
+                    <img src="/ai.png" alt="Suqafuran AI" className="w-full h-full object-contain" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-100 px-4 py-2.5 shadow-xs text-sm">
                     Hi! I'm your Suqafuran shopping assistant. How can I help you today?

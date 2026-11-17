@@ -31,7 +31,7 @@ export const AIResponse: React.FC<AIResponseProps> = ({
       {/* Suqafuran AI Avatar */}
       <div className="w-8 h-8 rounded-full bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 mt-0.5 shadow-xs p-0.5">
         <img
-          src="/ai-shopper-icon.png"
+          src="/ai.png"
           alt="Suqafuran AI"
           className="w-full h-full object-contain"
         />

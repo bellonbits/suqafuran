@@ -37,7 +37,7 @@ export const AIShopperWelcome: React.FC<AIShopperWelcomeProps> = ({
       <div className="relative mb-3 sm:mb-6 shrink-0">
         <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-xs flex items-center justify-center p-2 overflow-hidden hover:scale-105 transition-transform duration-300">
           <img
-            src="/ai-shopper-icon.png"
+            src="/ai.png"
             alt="Suqafuran AI Shopper"
             className="w-full h-full object-contain"
           />

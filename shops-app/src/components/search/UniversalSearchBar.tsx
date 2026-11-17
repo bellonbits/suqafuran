@@ -137,8 +137,8 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
               title="Open Suqafuran AI Shopper"
             >
               <img
-                src="/ai-shopper-icon.png"
-                alt=""
+                src="/ai.png"
+                alt="AI Shopper"
                 className="w-4 h-4 object-contain shrink-0 rounded-full"
               />
               <span className="hidden sm:inline">AI Shopper</span>
@@ -198,7 +198,7 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-xl bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 p-0.5 shadow-xs">
                   <img
-                    src="/ai-shopper-icon.png"
+                    src="/ai.png"
                     alt="AI Shopper"
                     className="w-full h-full object-contain"
                   />

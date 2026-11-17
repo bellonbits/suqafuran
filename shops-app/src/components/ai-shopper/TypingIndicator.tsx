@@ -14,7 +14,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
     <div className={`flex items-center gap-2.5 ${className}`}>
       <div className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 shadow-xs p-0.5">
         <img
-          src="/ai-shopper-icon.png"
+          src="/ai.png"
           alt="Suqafuran AI"
           className="w-full h-full object-contain"
         />

@@ -241,6 +241,17 @@ export const Header: React.FC = () => {
                             )}
                         </button>
 
+                        {/* AI Shopper Quick Button */}
+                        <button
+                            onClick={() => router.push('/ai-shopper')}
+                            className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-full flex items-center justify-center gap-1.5 bg-[#00BFFF]/10 hover:bg-[#00BFFF]/20 text-[#00BFFF] border border-[#00BFFF]/30 transition-all cursor-pointer active:scale-95 shrink-0"
+                            title="Suqafuran AI Shopper"
+                            aria-label="AI Shopper"
+                        >
+                            <img src="/ai.png" alt="AI" className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain" />
+                            <span className="hidden xl:inline text-xs font-black text-[#00BFFF]">AI</span>
+                        </button>
+
                         {/* Cart / Checkout */}
                         <button
                             onClick={() => router.push('/checkout')}
@@ -506,7 +517,7 @@ export const Header: React.FC = () => {
                                     onClick={() => { router.push('/ai-shopper'); setIsMobileMenuOpen(false); }}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-800 dark:text-neutral-100 hover:bg-[#00BFFF]/10 transition-colors text-xs font-bold"
                                 >
-                                    <Sparkles className="w-4 h-4 text-[#00BFFF]" />
+                                    <img src="/ai.png" alt="AI Shopper" className="w-4 h-4 object-contain" />
                                     <span className="flex-1 text-left text-[#00BFFF]">AI Shopper</span>
                                     <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-[#00BFFF]/10 text-[#00BFFF]">AI</span>
                                 </button>
