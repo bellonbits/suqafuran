@@ -19,7 +19,7 @@ import { useAuthStore } from '@/store/useAuth';
 import { useCurrencyStore } from '@/store/useCurrency';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
-import { trackEvent, trackCharge } from '@/lib/analytics';
+import { trackEvent, trackCharge, trackSendMessage, trackSellerReplySent } from '@/lib/analytics';
 import { detectFraudRisk } from '@/components/chat/ChatFraudGuard';
 import { OrderReceiptBubble } from '@/components/chat/OrderReceiptBubble';
 import { VoiceNotePlayer } from '@/components/chat/VoiceNotePlayer';
@@ -633,7 +633,16 @@ function MessagesPageContent() {
                 )
             );
 
+            const isSellerRole = currentUser?.role === 'seller';
             trackEvent('Message Sent', { receiver_id: selectedUserId });
+            trackSendMessage({
+                sender_role: isSellerRole ? 'seller' : 'buyer',
+                conversation_id: selectedUserId,
+                item_id: activeListingId ? Number(activeListingId) : undefined,
+            });
+            if (isSellerRole) {
+                trackSellerReplySent(selectedUserId);
+            }
             if (isNewConversation) {
                 trackEvent('Conversation Started', { receiver_id: selectedUserId });
             }

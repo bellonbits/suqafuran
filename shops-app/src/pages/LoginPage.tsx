@@ -5,7 +5,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Phone, Eye, EyeOff, Loader2, RotateCw } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/auth';
-import { identifyUser, trackEvent } from '@/lib/analytics';
+import { identifyUser, trackEvent, trackLogin } from '@/lib/analytics';
 
 const COUNTRY_CODES = [
     { code: '+254', label: 'Kenya +254', flag: '🇰🇪' },
@@ -54,6 +54,7 @@ export default function LoginPage() {
         storeLogin(me, token);
         identifyUser(me);
         trackEvent('Login', { method });
+        trackLogin({ method, user_role: me.role });
         navigate(from, { replace: true });
     };
 

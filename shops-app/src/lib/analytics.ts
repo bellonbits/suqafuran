@@ -1,12 +1,13 @@
 /**
- * Thin wrapper around the global Mixpanel snippet (loaded in index.html).
+ * Unified Analytics Wrapper (Mixpanel + Google Tag Manager / GA4)
  *
- * Without identify(), every visit is tracked as a fresh anonymous session
- * with no link back to the same person's previous visits or their account
- * -- which is why retention/funnel reports were showing nothing meaningful
- * (just generic autocaptured page views and clicks). This ties real
- * business events to the actual signed-in user.
+ * Directs business events to both Mixpanel (retention/funnels) and
+ * Google Tag Manager (GA4 E-commerce, traffic analysis, Looker Studio).
+ * Strictly complies with GA4 PII restrictions (no emails, phone numbers, or chat messages).
  */
+
+import { pushDataLayer } from './gtm';
+export * from './gtm';
 
 type MixpanelLike = {
   identify: (id: string) => void;
@@ -26,7 +27,13 @@ function getMixpanel(): MixpanelLike | null {
   return mp;
 }
 
-export function identifyUser(user: { id: number | string; full_name?: string; email?: string; phone?: string }) {
+export function identifyUser(user: {
+  id: number | string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}) {
   const mp = getMixpanel();
   if (mp) {
     mp.identify(String(user.id));
@@ -34,48 +41,44 @@ export function identifyUser(user: { id: number | string; full_name?: string; em
       $name: user.full_name,
       $email: user.email,
       phone: user.phone,
+      role: user.role,
     });
   }
-  if (typeof window !== 'undefined' && (window as any).dataLayer) {
-    (window as any).dataLayer.push({
-      event: 'user_identified',
-      user_id: user.id,
-      user_name: user.full_name,
-    });
-  }
+
+  // Push pseudonymous ID and role to GTM dataLayer (strictly NO PII to GA4)
+  pushDataLayer({
+    event: 'user_identified',
+    user_id: String(user.id),
+    user_role: user.role || 'user',
+  });
 }
 
 export function resetAnalytics() {
   getMixpanel()?.reset();
+  pushDataLayer({
+    event: 'user_logout',
+    user_id: undefined,
+  });
 }
 
 export function trackEvent(event: string, props?: Record<string, unknown>) {
   getMixpanel()?.track(event, props);
-  if (typeof window !== 'undefined' && (window as any).dataLayer) {
-    (window as any).dataLayer.push({
-      event,
-      ...props,
-    });
-  }
+  pushDataLayer({
+    event,
+    ...props,
+  });
 }
 
 /**
- * Records a real (self-confirmed, not payment-verified -- Suqafuran doesn't
- * process payment) sale against the current user's profile via Mixpanel's
- * revenue API, so LTV/LTV-CAC reports have something to roll up. Call this
- * alongside trackEvent('Purchase', ...), not instead of it -- track_charge
- * feeds the People/revenue reports, track() feeds the funnel/event reports.
+ * Records a real sale against the current user's profile via Mixpanel's
+ * revenue API.
  */
 export function trackCharge(amount: number, props?: Record<string, unknown>) {
   getMixpanel()?.people.track_charge(amount, props);
 }
 
 /**
- * First-touch acquisition channel, captured once per session (including for
- * anonymous, not-yet-signed-up visitors) so it's attached as a super
- * property to every event this session -- including the eventual Signup
- * Completed/Purchase -- which is what the board's "Top Channels"/"LTV/CAC
- * by channel" reports are built from.
+ * First-touch acquisition channel, captured once per session
  */
 export function captureAcquisitionChannel() {
   const mp = getMixpanel();
@@ -99,6 +102,14 @@ export function captureAcquisitionChannel() {
   }
 
   mp.register({
+    acquisition_channel: channel,
+    utm_source: utmSource || undefined,
+    utm_medium: utmMedium || undefined,
+    utm_campaign: utmCampaign || undefined,
+  });
+
+  pushDataLayer({
+    event: 'acquisition_channel_set',
     acquisition_channel: channel,
     utm_source: utmSource || undefined,
     utm_medium: utmMedium || undefined,

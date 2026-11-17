@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User as UserIcon, Phone, Eye, EyeOff, Loader2, RotateCw } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/auth';
-import { identifyUser, trackEvent } from '@/lib/analytics';
+import { identifyUser, trackEvent, trackSignUp } from '@/lib/analytics';
 
 const COUNTRY_CODES = [
     { code: '+254', label: 'Kenya +254', flag: '🇰🇪' },
@@ -55,6 +55,7 @@ export default function SignupPage() {
         storeLogin(me, token);
         identifyUser(me);
         trackEvent('Signup Completed', { method });
+        trackSignUp({ method, user_role: me.role });
         navigate('/', { replace: true });
     };
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { trackViewAdvertisingPlans, trackSelectAdvertisingPlan, trackBeginCheckout, trackPurchase } from '@/lib/analytics';
 
 interface Plan {
   id: number;
@@ -44,6 +45,13 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
         const response = await api.get('/subscriptions/plans');
         console.log('Fetched plans:', response.data);
         setPlans(response.data);
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          trackViewAdvertisingPlans(response.data.map((p: Plan) => ({
+            id: p.id,
+            name: p.display_name || p.name,
+            price: p.monthly_price || p.annual_price || 0,
+          })));
+        }
         // Select Starter plan (has 7-day trial)
         const starterPlan = response.data.find((p: Plan) =>
           p.name === 'starter' || (p.name === 'pro' && p.trial_days > 0)
@@ -116,6 +124,19 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
     }
 
     setLoading(true);
+    const upgradePrice = (billingFrequency === 'monthly'
+      ? selectedPlan.monthly_price
+      : selectedPlan.annual_price) || 0;
+
+    trackBeginCheckout({
+      plan: {
+        id: selectedPlan.id,
+        name: selectedPlan.display_name || selectedPlan.name,
+        price: upgradePrice,
+      },
+      currency: 'KES',
+    });
+
     try {
       const response = await api.post(`/subscriptions/sellers/${sellerId}/upgrade`, {
         plan_id: selectedPlan.id,
@@ -124,6 +145,23 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
       });
 
       if (response.data.status === 'payment_initiated') {
+        const txId = response.data.checkout_request_id || `SUB_${selectedPlan.id}_${sellerId}_${Date.now()}`;
+        trackPurchase({
+          transaction_id: txId,
+          value: upgradePrice,
+          currency: 'KES',
+          payment_type: 'mpesa',
+          items: [
+            {
+              item_id: selectedPlan.id,
+              item_name: selectedPlan.display_name || selectedPlan.name,
+              item_category: 'Seller Subscription',
+              price: upgradePrice,
+              quantity: 1,
+            },
+          ],
+        });
+
         toast({
           title: 'Payment Initiated',
           description: 'Check your phone for M-Pesa prompt. Enter your PIN to confirm.',

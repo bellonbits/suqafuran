@@ -10,6 +10,7 @@ import { AuthModal } from './components/shared/AuthModal'
 import { AISupportChat } from './components/shared/AISupportChat'
 import { CookieConsentBanner } from './components/shared/CookieConsentBanner'
 import { MobileAppPrompt } from './components/shared/MobileAppPrompt'
+import { trackPageView, initConsentModeListener, captureAcquisitionChannel } from './lib/analytics'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
 import HomePage from './pages/HomePage'
@@ -154,6 +155,24 @@ function ScrollToTop() {
   return null
 }
 
+function AnalyticsTracker() {
+  const location = useLocation()
+
+  // Initialize consent mode listener & capture first-touch channel
+  useEffect(() => {
+    captureAcquisitionChannel()
+    const cleanupConsent = initConsentModeListener()
+    return cleanupConsent
+  }, [])
+
+  // Send GA4 page_view on every SPA route change
+  useEffect(() => {
+    trackPageView(location.pathname + location.search)
+  }, [location.pathname, location.search])
+
+  return null
+}
+
 export default function App() {
   const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(() => isCapacitorApp() && !hasSeenOnboarding())
@@ -192,6 +211,7 @@ export default function App() {
   return (
     <>
     <ScrollToTop />
+    <AnalyticsTracker />
     <CookieConsentBanner />
     <MobileAppPrompt />
     <Suspense fallback={<RouteLoadingFallback />}>

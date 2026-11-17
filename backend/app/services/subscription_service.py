@@ -208,84 +208,89 @@ class SubscriptionService:
     ) -> SellerSubscription:
         """Create a new subscription for a shop."""
 
+        close_session = False
         if session is None:
             from app.db.session import SessionLocal
-
             session = SessionLocal()
+            close_session = True
 
-        # Calculate dates
-        trial_started_at = None
-        trial_ends_at = None
-        current_period_start = datetime.utcnow()
-        current_period_end = datetime.utcnow()
+        try:
+            # Calculate dates
+            trial_started_at = None
+            trial_ends_at = None
+            current_period_start = datetime.utcnow()
+            current_period_end = datetime.utcnow()
 
-        if is_trial:
+            if is_trial:
+                plan = session.exec(select(SubscriptionPlan).where(
+                    SubscriptionPlan.id == plan_id
+                )).first()
+                trial_days = plan.trial_days if plan else 7
+                trial_started_at = datetime.utcnow()
+                trial_ends_at = datetime.utcnow() + timedelta(days=trial_days)
+                current_period_end = trial_ends_at
+            else:
+                if billing_frequency == BillingFrequency.MONTHLY:
+                    current_period_end = datetime.utcnow() + timedelta(days=30)
+                else:  # Annual
+                    current_period_end = datetime.utcnow() + timedelta(days=365)
+
+            subscription = SellerSubscription(
+                seller_id=seller_id,
+                plan_id=plan_id,
+                billing_frequency=billing_frequency,
+                trial_started_at=trial_started_at,
+                trial_ends_at=trial_ends_at,
+                is_trial_active=is_trial,
+                current_period_start=current_period_start,
+                current_period_end=current_period_end,
+                renews_at=current_period_end,
+                status=BillingStatus.ACTIVE,
+                is_active=True,
+            )
+
+            session.add(subscription)
+            session.commit()
+            session.refresh(subscription)
+
+            # Update billing record with subscription
+            billing = session.exec(select(SellerBilling).where(
+                SellerBilling.id == billing_id
+            )).first()
+            if billing:
+                billing.subscription_id = subscription.id
+                session.add(billing)
+                session.commit()
+
+            # Create feature access record
             plan = session.exec(select(SubscriptionPlan).where(
                 SubscriptionPlan.id == plan_id
             )).first()
-            trial_days = plan.trial_days if plan else 7
-            trial_started_at = datetime.utcnow()
-            trial_ends_at = datetime.utcnow() + timedelta(days=trial_days)
-            current_period_end = trial_ends_at
-        else:
-            if billing_frequency == BillingFrequency.MONTHLY:
-                current_period_end = datetime.utcnow() + timedelta(days=30)
-            else:  # Annual
-                current_period_end = datetime.utcnow() + timedelta(days=365)
 
-        subscription = SellerSubscription(
-            seller_id=seller_id,
-            plan_id=plan_id,
-            billing_frequency=billing_frequency,
-            trial_started_at=trial_started_at,
-            trial_ends_at=trial_ends_at,
-            is_trial_active=is_trial,
-            current_period_start=current_period_start,
-            current_period_end=current_period_end,
-            renews_at=current_period_end,
-            status=BillingStatus.ACTIVE,
-            is_active=True,
-        )
+            if plan:
+                feature_access = SellerFeatureAccess(
+                    seller_id=seller_id,
+                    subscription_id=subscription.id,
+                    has_analytics=plan.has_analytics,
+                    has_verified_badge=plan.has_verified_badge,
+                    has_priority_ranking=plan.has_priority_ranking,
+                    has_custom_branding=plan.has_custom_branding,
+                    has_bulk_import=plan.has_bulk_import,
+                    has_marketing_codes=plan.has_marketing_codes,
+                    has_staff_accounts=plan.has_staff_accounts,
+                    has_email_support=plan.has_email_support,
+                    has_priority_support=plan.has_priority_support,
+                    max_products=plan.max_products,
+                    max_staff_accounts=plan.max_staff_accounts,
+                )
+                session.add(feature_access)
+                session.commit()
 
-        session.add(subscription)
-        session.commit()
-        session.refresh(subscription)
-
-        # Update billing record with subscription
-        billing = session.exec(select(SellerBilling).where(
-            SellerBilling.id == billing_id
-        )).first()
-        if billing:
-            billing.subscription_id = subscription.id
-            session.add(billing)
-            session.commit()
-
-        # Create feature access record
-        plan = session.exec(select(SubscriptionPlan).where(
-            SubscriptionPlan.id == plan_id
-        )).first()
-
-        if plan:
-            feature_access = SellerFeatureAccess(
-                seller_id=seller_id,
-                subscription_id=subscription.id,
-                has_analytics=plan.has_analytics,
-                has_verified_badge=plan.has_verified_badge,
-                has_priority_ranking=plan.has_priority_ranking,
-                has_custom_branding=plan.has_custom_branding,
-                has_bulk_import=plan.has_bulk_import,
-                has_marketing_codes=plan.has_marketing_codes,
-                has_staff_accounts=plan.has_staff_accounts,
-                has_email_support=plan.has_email_support,
-                has_priority_support=plan.has_priority_support,
-                max_products=plan.max_products,
-                max_staff_accounts=plan.max_staff_accounts,
-            )
-            session.add(feature_access)
-            session.commit()
-
-        logger.info(f"Created subscription for {seller_id}: {subscription.id}")
-        return subscription
+            logger.info(f"Created subscription for {seller_id}: {subscription.id}")
+            return subscription
+        finally:
+            if close_session:
+                session.close()
 
     def get_seller_features(
         self, seller_id: int, session: Session

@@ -5,7 +5,7 @@ import { X, Mail, Lock, User as UserIcon, Phone, Loader2, RotateCw, Eye, EyeOff 
 import { useAuthModal } from '../../store/useAuthModal';
 import { useAuthStore } from '../../store/useAuth';
 import { authService } from '../../services/auth';
-import { identifyUser, trackEvent } from '../../lib/analytics';
+import { identifyUser, trackEvent, trackLogin, trackSignUp } from '../../lib/analytics';
 
 type Method = 'email' | 'phone';
 type Step = 'form' | 'otp';
@@ -73,6 +73,11 @@ export const AuthModal: React.FC = () => {
         storeLogin(user, token);
         identifyUser(user);
         trackEvent(mode === 'signup' ? 'Signup Completed' : 'Login', { method });
+        if (mode === 'signup') {
+            trackSignUp({ method, user_role: user.role });
+        } else {
+            trackLogin({ method, user_role: user.role });
+        }
         close();
     };
 

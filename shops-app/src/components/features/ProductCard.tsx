@@ -8,7 +8,7 @@ import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useCurrencyStore } from '../../store/useCurrency';
 import { useCart } from '../../store/useCart';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, trackSaveItem, trackSelectItem } from '@/lib/analytics';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { FeaturedBadge } from '../ads/FeaturedBadge';
@@ -99,6 +99,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             openAuthModal('signin');
             return;
         }
+        trackSaveItem({
+            item_id: listing.id,
+            item_name: title || listing.title_en || 'Product',
+            item_category: categoryName || 'General',
+            price: Number(listing.price || 0),
+            action: isFavorite ? 'unsave' : 'save',
+        });
         toggleFavorite(listing.id);
     };
 
@@ -173,6 +180,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             <Link
                 to={`/listing/${listing.id}`}
                 state={{ listing }}
+                onClick={() => trackSelectItem({
+                    id: listing.id,
+                    name: title || listing.title_en || 'Product',
+                    category: categoryName || 'General',
+                    price: Number(listing.price || 0),
+                    seller_id: listing.owner_id,
+                })}
                 className="flex gap-3 sm:gap-4 w-full text-left hover:no-underline group"
             >
                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800/80 cursor-pointer">
@@ -246,6 +260,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
         <Link
             to={`/listing/${listing.id}`}
             state={{ listing }}
+            onClick={() => trackSelectItem({
+                id: listing.id,
+                name: title || listing.title_en || 'Product',
+                category: categoryName || 'General',
+                price: Number(listing.price || 0),
+                seller_id: listing.owner_id,
+            })}
             className="block group w-full text-left hover:no-underline"
         >
             <div

@@ -6,7 +6,7 @@ import { SfInput, SfIconSearch, SfIconClose } from '@storefront-ui/react';
 import { PackageSearch } from 'lucide-react';
 import { listingsService } from '@/services/listings';
 import { analyticsService } from '@/services/analytics';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, trackSearch } from '@/lib/analytics';
 import { useLocalizedField } from '@/lib/i18n';
 import {
     ListingCard,
@@ -135,6 +135,7 @@ function SearchPageContent() {
                         device_type: analyticsService.getDeviceType(),
                     }).catch(() => {});
                     trackEvent('Search', { query, result_count: data.length });
+                    trackSearch(query, data.length, categoryParam || undefined);
                 }
             } catch (err) {
                 console.error('Failed to search listings', err);

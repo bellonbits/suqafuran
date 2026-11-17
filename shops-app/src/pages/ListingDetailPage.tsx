@@ -22,7 +22,7 @@ import { useCurrencyStore } from '@/store/useCurrency';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { ProductCard } from '@/components/features/ProductCard';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, trackViewItem, trackStartChat, trackContactSeller, trackShare } from '@/lib/analytics';
 import type { Listing, Feedback } from '@/types';
 
 type DetailTab = 'description' | 'specs' | 'seller';
@@ -133,6 +133,14 @@ export default function ProductDetailPage() {
             category_id: listing.category_id,
             price: listing.price,
             seller_id: listing.owner_id,
+        });
+        trackViewItem({
+            id: listing.id,
+            name: field(listing.title_en, listing.title_so) || listing.title_en,
+            category: categoryName || String(listing.category_id),
+            price: listing.price ?? 0,
+            seller_id: listing.owner_id,
+            currency: listing.currency || 'KES',
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [listing?.id]);
@@ -333,6 +341,11 @@ export default function ProductDetailPage() {
                 amount: numericAmount,
                 original_price: listing.price,
             });
+            trackContactSeller({
+                method: 'offer',
+                item_id: listing.id,
+                seller_id: listing.owner_id,
+            });
         } catch (err: any) {
             console.error('Failed to submit offer', err);
             setOfferError(err?.response?.data?.detail || 'Failed to submit offer. Please try again.');
@@ -380,6 +393,13 @@ export default function ProductDetailPage() {
     const shareUrl = typeof window !== 'undefined' ? `https://suqafuran.com${window.location.pathname}${window.location.search}` : '';
 
     const handleNativeShare = async () => {
+        if (listing) {
+            trackShare({
+                method: navigator.share ? 'native_share' : 'copy_link',
+                content_type: 'listing',
+                item_id: listing.id,
+            });
+        }
         if (navigator.share) {
             try {
                 await navigator.share({ title: shareTitle, url: shareUrl });
@@ -396,11 +416,25 @@ export default function ProductDetailPage() {
     };
 
     const shareToX = () => {
+        if (listing) {
+            trackShare({
+                method: 'x',
+                content_type: 'listing',
+                item_id: listing.id,
+            });
+        }
         const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 
     const shareToWhatsApp = () => {
+        if (listing) {
+            trackShare({
+                method: 'whatsapp',
+                content_type: 'listing',
+                item_id: listing.id,
+            });
+        }
         const url = `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     };
@@ -588,12 +622,24 @@ export default function ProductDetailPage() {
                                     </button>
                                     <Link
                                         href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
-                                        onClick={() => analyticsService.trackClick({
-                                            event_type: 'chat',
-                                            listing_id: listing.id,
-                                            shop_id: listing.owner_id,
-                                            device_type: analyticsService.getDeviceType(),
-                                        }).catch(() => {})}
+                                        onClick={() => {
+                                            analyticsService.trackClick({
+                                                event_type: 'chat',
+                                                listing_id: listing.id,
+                                                shop_id: listing.owner_id,
+                                                device_type: analyticsService.getDeviceType(),
+                                            }).catch(() => {});
+                                            trackStartChat({
+                                                item_id: listing.id,
+                                                item_name: field(listing.title_en, listing.title_so) || listing.title_en,
+                                                seller_id: listing.owner_id,
+                                            });
+                                            trackContactSeller({
+                                                method: 'chat',
+                                                item_id: listing.id,
+                                                seller_id: listing.owner_id,
+                                            });
+                                        }}
                                         className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 text-base transition-colors shadow-md shadow-orange-500/20"
                                     >
                                         <MessageSquare className="h-5 w-5" />
@@ -746,6 +792,18 @@ export default function ProductDetailPage() {
                             <div className="flex gap-2">
                                 <Link
                                     href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                                    onClick={() => {
+                                        trackStartChat({
+                                            item_id: listing.id,
+                                            item_name: field(listing.title_en, listing.title_so) || listing.title_en,
+                                            seller_id: listing.owner_id,
+                                        });
+                                        trackContactSeller({
+                                            method: 'chat',
+                                            item_id: listing.id,
+                                            seller_id: listing.owner_id,
+                                        });
+                                    }}
                                     className="flex items-center gap-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-neutral-200 transition-all"
                                 >
                                     <MessageSquare className="h-3.5 w-3.5 text-orange-500" /> Chat
@@ -889,12 +947,24 @@ export default function ProductDetailPage() {
                     </button>
                     <Link
                         to={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
-                        onClick={() => analyticsService.trackClick({
-                            event_type: 'chat',
-                            listing_id: listing.id,
-                            shop_id: listing.owner_id,
-                            device_type: analyticsService.getDeviceType(),
-                        }).catch(() => {})}
+                        onClick={() => {
+                            analyticsService.trackClick({
+                                event_type: 'chat',
+                                listing_id: listing.id,
+                                shop_id: listing.owner_id,
+                                device_type: analyticsService.getDeviceType(),
+                            }).catch(() => {});
+                            trackStartChat({
+                                item_id: listing.id,
+                                item_name: field(listing.title_en, listing.title_so) || listing.title_en,
+                                seller_id: listing.owner_id,
+                            });
+                            trackContactSeller({
+                                method: 'chat',
+                                item_id: listing.id,
+                                seller_id: listing.owner_id,
+                            });
+                        }}
                         className="flex-1 h-11 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs shadow-orange-500/25"
                     >
                         <MessageSquare className="h-3.5 w-3.5 shrink-0" />

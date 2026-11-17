@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { trackViewAdvertisingPlans, trackSelectAdvertisingPlan, trackBeginCheckout, trackPurchase } from '@/lib/analytics';
 import { TrendingUp, Zap, AlertCircle, CheckCircle, Mail, Loader2 } from 'lucide-react';
 
 interface AdvertisingPlan {
@@ -62,6 +63,13 @@ export default function FeaturedAdsPage() {
         ]);
         setPlans(plansRes.data);
         setMyAds(adsRes.data);
+        if (Array.isArray(plansRes.data) && plansRes.data.length > 0) {
+          trackViewAdvertisingPlans(plansRes.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price_per_week || p.price_per_day || p.price_per_month || 0,
+          })));
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
         toast({
@@ -81,6 +89,19 @@ export default function FeaturedAdsPage() {
     if (!selectedPlan) return;
 
     setPurchasing(true);
+    const unitPrice = selectedPlan.price_per_day || selectedPlan.price_per_week || selectedPlan.price_per_month || 0;
+    const estAmount = unitPrice * duration;
+
+    trackBeginCheckout({
+      plan: {
+        id: selectedPlan.id,
+        name: selectedPlan.name,
+        price: estAmount,
+      },
+      duration,
+      currency: 'KES',
+    });
+
     try {
       const response = await api.post('/advertising/create-payment', {
         plan_id: selectedPlan.id,
@@ -88,13 +109,31 @@ export default function FeaturedAdsPage() {
         duration: duration,
       });
 
+      const txId = response.data.checkout_request_id || `ADV_${response.data.advertisement_id || Date.now()}`;
+      const amount = Number(response.data.amount || estAmount);
+
       toast({
         title: 'Success',
-        description: `Payment created. Total: KSh ${response.data.amount}`,
+        description: `Payment created. Total: KSh ${amount}`,
         variant: 'default',
       });
 
-      // TODO: Redirect to M-Pesa payment flow
+      trackPurchase({
+        transaction_id: txId,
+        value: amount,
+        currency: 'KES',
+        payment_type: 'mpesa',
+        items: [
+          {
+            item_id: selectedPlan.id,
+            item_name: selectedPlan.name,
+            item_category: 'Advertising Plan',
+            price: amount,
+            quantity: 1,
+          },
+        ],
+      });
+
       // Refresh ads
       const res = await api.get('/advertising/my-ads');
       setMyAds(res.data);
@@ -195,7 +234,15 @@ export default function FeaturedAdsPage() {
                 key={plan.id}
                 plan={plan}
                 selected={selectedPlan?.id === plan.id}
-                onClick={() => setSelectedPlan(plan)}
+                onClick={() => {
+                  setSelectedPlan(plan);
+                  trackSelectAdvertisingPlan({
+                    id: plan.id,
+                    name: plan.name,
+                    price: plan.price_per_week || plan.price_per_day || plan.price_per_month || 0,
+                    duration,
+                  });
+                }}
               />
             ))}
           </div>

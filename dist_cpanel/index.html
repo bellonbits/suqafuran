@@ -13,13 +13,36 @@
     <title>Suqafuran - Africa's Marketplace</title>
     <meta name="description" content="Buy and sell locally on Suqafuran -- browse thousands of products from local sellers and shops, or list your own." />
 
-    <!-- Google Tag Manager (GTM / Google Analytics) -->
-    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-PGPLCDG6"></script>
+    <!-- Google Consent Mode v2 & Google Tag Manager -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+
+      // Initialize Google Consent Mode v2 with defaults or stored user preferences
+      var defaultAnalytics = 'denied';
+      var defaultAds = 'denied';
+      try {
+        var stored = localStorage.getItem('suqafuran_cookie_consent');
+        if (stored) {
+          var parsed = JSON.parse(stored);
+          if (parsed && parsed.preferences) {
+            if (parsed.preferences.analytics) defaultAnalytics = 'granted';
+            if (parsed.preferences.marketing) defaultAds = 'granted';
+          }
+        }
+      } catch (e) {}
+
+      gtag('consent', 'default', {
+        'analytics_storage': defaultAnalytics,
+        'ad_storage': defaultAds,
+        'ad_user_data': defaultAds,
+        'ad_personalization': defaultAds,
+        'wait_for_update': 500
+      });
+
       gtag('js', new Date());
     </script>
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MW2MX5W9"></script>
     <!-- End Google Tag Manager -->
 
     <!-- Nearly every image on this site is served from Cloudinary --
@@ -63,12 +86,12 @@
       })();
     </script>
 
-    <script type="module" crossorigin src="/assets/index-27448418.js"></script>
+    <script type="module" crossorigin src="/assets/index-3a108364.js"></script>
     <link rel="stylesheet" href="/assets/index-84bb2015.css">
   </head>
   <body class="antialiased bg-[#F8FAFC] text-[#0F172A] dark:bg-[#0B132B] dark:text-[#F8FAFC] overflow-x-hidden">
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PGPLCDG6"
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MW2MX5W9"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div id="root"></div>

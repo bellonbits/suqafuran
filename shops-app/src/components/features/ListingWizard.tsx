@@ -7,7 +7,7 @@ import { ListingStep3Images } from './listing-wizard/Step3Images';
 import { ListingStep4Review } from './listing-wizard/Step4Review';
 import { listingsService } from '../../services/listings';
 import { useRouter } from 'next/navigation';
-import { trackEvent } from '../../lib/analytics';
+import { trackEvent, trackListingCreationStarted, trackListingImageUploaded, trackListingPublished } from '../../lib/analytics';
 
 export interface ListingFormData {
   shop_id?: number;
@@ -367,6 +367,20 @@ export const ListingWizard: React.FC = () => {
   const [subcategorySubsubcategories, setSubcategorySubsubcategories] = useState<Array<{ id: number; name: string; brands?: string[] }>>([]);
   const [allCategories, setAllCategories] = useState<Array<{ id: number; name: string; name_en?: string }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const prevImageCountRef = useRef(0);
+
+  // Track wizard initiation
+  useEffect(() => {
+    trackListingCreationStarted();
+  }, []);
+
+  // Track image upload step
+  useEffect(() => {
+    if (formData.images.length > prevImageCountRef.current) {
+      trackListingImageUploaded(formData.images.length);
+      prevImageCountRef.current = formData.images.length;
+    }
+  }, [formData.images.length]);
 
   // Load all categories from API on mount
   useEffect(() => {
@@ -559,6 +573,13 @@ export const ListingWizard: React.FC = () => {
           listing_id: result.id,
           category_id: formData.category_id,
           price: formData.price,
+        });
+        trackListingPublished({
+          id: result.id,
+          name: formData.title,
+          category: formData.category_id,
+          price: formData.price,
+          pricing_type: formData.price_type,
         });
         router.push(`/listings/${result.id}`);
       }

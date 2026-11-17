@@ -13,6 +13,7 @@ import { ListingCard, SortBar } from '@/components/storefront';
 import type { FilterOption } from '@/components/storefront';
 import { getMockProductInfo } from '@/lib/mockProductInfo';
 import { useT, useLocalizedField } from '@/lib/i18n';
+import { trackViewItemList } from '@/lib/analytics';
 
 // Legacy/alias URLs → the slug the API knows.
 const categorySlugMap: Record<string, string> = {
@@ -92,7 +93,22 @@ export default function CategoryPage() {
         request
             .then(data => {
                 if (cancelled) return;
-                setListings(isDealsPage ? data.filter(l => getMockProductInfo(l).hasPromo) : data);
+                const itemsList = isDealsPage ? data.filter(l => getMockProductInfo(l).hasPromo) : data;
+                setListings(itemsList);
+                if (itemsList.length > 0) {
+                    trackViewItemList(
+                        slug,
+                        formatCategoryName(slug),
+                        itemsList.slice(0, 10).map((l, idx) => ({
+                            id: l.id,
+                            name: field(l.title_en, l.title_so) || l.title_en || 'Product',
+                            category: formatCategoryName(slug),
+                            price: l.price ?? 0,
+                            seller_id: l.owner_id,
+                            index: idx + 1,
+                        }))
+                    );
+                }
             })
             .catch(err => {
                 console.error('Failed loading category listings:', err);
